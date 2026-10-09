@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Turn a task into a map of possibilities. Explore unexpected connections and choose your own creative path.">
+  <meta name="theme-color" content="#111615">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Unlikely — A map of possibilities">
+  <meta property="og:description" content="Explore unexpected connections. Choose your own creative path. An open-source playground for writing, products, and business.">
+  <meta property="og:url" content="https://rre37826-source.github.io/unlikely/">
+  <meta property="og:image" content="https://rre37826-source.github.io/unlikely/social-preview.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <title>Unlikely — A map of possibilities</title>
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="wordmark" href="./" aria-label="Unlikely home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 24 12 8l8 15L28 6"/><circle cx="5" cy="24" r="3"/><circle cx="12" cy="8" r="3"/><circle cx="20" cy="23" r="3"/><circle cx="28" cy="6" r="3"/></svg><span>unlikely<span class="wordmark-period">.</span></span></a>
+    <span class="brand-note" data-i18n="tagline">A map of possibilities</span>
+    <nav class="top-actions" aria-label="Workspace actions">
+      <button id="walkthrough" class="quiet-button" data-i18n="watch">20-second tour</button>
+      <button id="new-task" class="quiet-button" data-i18n="newTask">Your own task</button>
+      <button id="language" class="language-button" aria-label="Switch language">中文</button>
+      <a id="github-link" class="github-button" hidden target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+    </nav>
+  </header>
+
+  <main class="workspace">
+    <section class="explorer" aria-label="Idea exploration">
+      <div class="brief-bar">
+        <div class="brief-heading">
+          <div class="eyebrow"><span id="provenance">CURATED EXAMPLE</span><span class="eyebrow-rule"></span><span id="graph-count">31 ideas · 6 territories</span></div>
+          <h1 id="task-title">A different way to find your next idea.</h1>
+          <p id="task-description"></p>
+        </div>
+        <div class="example-switch" id="example-switch" aria-label="Example tasks"></div>
+      </div>
+      <div class="canvas" id="canvas" role="region" aria-label="Interactive idea network">
+        <div class="canvas-caption"><span class="caption-dot"></span><span data-i18n="canvasHint">Follow your curiosity. Every line has a reason.</span></div>
+        <div class="graph-world" id="graph-world">
+          <svg id="graph-svg" viewBox="0 0 1400 640" aria-label="Connections between ideas"><g id="cluster-backgrounds"></g><g id="edge-lines"></g></svg>
+          <div id="cluster-labels"></div>
+          <div id="graph-nodes"></div>
+        </div>
+        <div class="canvas-bottom">
+          <div class="map-legend"><span><i class="legend-line"></i><span data-i18n="association">Association</span></span><span><i class="legend-line dashed"></i><span data-i18n="analogy">Analogy / hypothesis</span></span></div>
+          <div class="zoom-controls"><button id="zoom-out" aria-label="Zoom out">−</button><button id="fit-map" data-i18n="fit">Fit map</button><button id="zoom-in" aria-label="Zoom in">+</button></div>
+        </div>
+        <div id="tour-caption" class="tour-caption" hidden aria-live="polite"></div>
+        <div id="loading" class="loading-state" hidden role="status"><span class="loading-orbit"></span><span id="loading-label"></span><button id="cancel-request" class="quiet-button" data-i18n="cancel">Cancel</button></div>
+      </div>
+      <div class="route-examples">
+        <div class="examples-label"><span class="mini-kicker" data-i18n="tryPath">TAKE A DIFFERENT PATH</span><span data-i18n="examplesHint">Two starting points. Your choices make the difference.</span></div>
+        <div id="route-examples" class="route-example-buttons"></div>
+      </div>
+    </section>
+
+    <aside class="inspector" aria-label="Relationship and creative route">
+      <div class="inspector-tabs"><button id="tab-explore" class="active" data-i18n="inspect">Explore</button><button id="tab-route" data-i18n="myRoute">My route</button><span id="route-count">0</span></div>
+      <div id="explore-panel" class="inspector-content">
+        <div class="selection-top"><span id="selection-kind" class="mini-kicker"></span><span class="selection-mark">↗</span></div>
+        <h2 id="selection-title"></h2>
+        <p id="selection-description" class="selection-description"></p>
+        <div id="relation-card" class="relation-card" hidden><div id="relation-endpoints"></div><p id="relation-reason"></p><span id="relation-kind"></span></div>
+        <button id="keep-node" class="primary-button"></button>
+        <div id="gap-note" class="gap-note" hidden></div>
+        <div class="detail-section"><h3 data-i18n="connectedIdeas">Connected ideas</h3><div id="connected-ideas"></div></div>
+        <div class="expand-actions" id="expand-actions"><h3 data-i18n="keepExploring">Keep exploring</h3><div><button data-operation="deepen" data-i18n="deepen">Go deeper</button><button data-operation="analogy" data-i18n="goFurther">Find a distant analogy</button><button data-operation="invert" data-i18n="invert">Reverse it</button></div><p id="expand-status"></p></div>
+      </div>
+      <div id="route-panel" class="inspector-content" hidden>
+        <div class="selection-top"><span class="mini-kicker" data-i18n="yourChoices">YOUR CHOICES, CONNECTED</span><button id="clear-route" class="text-button" data-i18n="clear">Clear</button></div>
+        <h2 data-i18n="routeHeading">What are you onto?</h2>
+        <p class="selection-description" data-i18n="routeHint">Keep the connections that interest you. Reorder them until a direction emerges.</p>
+        <ol id="route-list"></ol>
+        <button id="bridge-route" class="secondary-button" hidden data-i18n="suggestBridge">Suggest an existing connection</button>
+        <button id="synthesize" class="primary-button" data-i18n="shapeIdea">Shape this idea</button>
+        <div id="idea-brief" class="idea-brief" hidden></div>
+        <div class="export-section"><h3 data-i18n="takeWithYou">Take it with you</h3><div class="export-actions"><button id="export-md">Markdown</button><button id="export-svg" data-i18n="routeCard">Route card</button><button id="export-json" data-i18n="projectFile">Project</button></div></div>
+      </div>
+      <div class="inspector-footer"><span id="save-status"></span><button id="import-project" class="text-button" data-i18n="import">Import</button><input id="file-input" type="file" accept="application/json,.json" hidden></div>
+    </aside>
+  </main>
+
+  <div id="notice" class="notice" role="status" aria-live="polite" hidden></div>
+  <dialog id="task-dialog" class="modal">
+    <form id="task-form">
+      <div class="modal-top"><span class="mini-kicker" data-i18n="newExploration">A NEW EXPLORATION</span><button type="button" data-close="task-dialog" class="close-button" aria-label="Close">×</button></div>
+      <h2 data-i18n="taskQuestion">What are you trying to make?</h2>
+      <label for="task-input" data-i18n="taskLabel">Your task</label><textarea id="task-input" rows="3" maxlength="2000" required></textarea>
+      <label for="seed-input" data-i18n="seedLabel">A starting idea, object, or event (optional)</label><input id="seed-input" maxlength="160">
+      <p id="model-status" class="model-status"></p>
+      <button type="submit" id="generate-task" class="primary-button" data-i18n="generate">Explore possibilities</button>
+      <details id="model-setup"><summary data-i18n="connectModel">Connect a model locally</summary><p data-i18n="setupText">Create .env from .env.example, set MODEL_BASE_URL, MODEL_API_KEY and MODEL_NAME, then restart npm start. Your key stays on your local server.</p><code>npm start</code></details>
+    </form>
+  </dialog>
+  <dialog id="bridge-dialog" class="modal"><div class="modal-top"><span class="mini-kicker" data-i18n="suggestion">A SUGGESTION, YOUR DECISION</span><button type="button" data-close="bridge-dialog" class="close-button" aria-label="Close">×</button></div><h2 data-i18n="bridgeTitle">A possible connection</h2><div id="bridge-preview"></div><button id="accept-bridge" class="primary-button" data-i18n="acceptBridge">Keep this connection</button></dialog>
+  <noscript>This workspace needs JavaScript. The source and curated examples are readable without an account or API key.</noscript>
+</body>
+</html>
