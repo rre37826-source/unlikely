@@ -35,8 +35,10 @@ These are **authored examples, not live generation**. Exact preset routes show t
 On the [website](https://rre37826-source.github.io/unlikely/), enter your task and choose **Generate my idea map**, or open **Connect a model**. Enter your provider's API base URL, model name, and API key, then **Test and connect**.
 
 - The provider must support OpenAI-compatible `/chat/completions`, bearer authentication, JSON-object output through `response_format`, and browser requests through CORS.
-- **Testing sends a small model request.** Testing, generation, expansion, and synthesis may incur charges on your provider account; you are responsible for those charges.
+- **Testing sends one model request; reasoning may also be billed.** Testing, generation, expansion, and synthesis may incur charges on your provider account; you are responsible for those charges.
 - The browser sends requests directly to the provider you specify. If that provider blocks browser requests, use the local server below.
+
+For the official Moonshot endpoint, use a current model such as `kimi-k2.6` or `kimi-k3`. `kimi-k2.5` was retired on August 31, 2026 ([official model list](https://platform.kimi.com/docs/models)). The connection check recognizes retired official models before making a request; it never silently switches your model. Provider errors distinguish unavailable models, rejected parameters, exhausted quota, and truncated output without displaying raw provider messages.
 
 **Verification status:** browser and local model integration have mock-based tests. No real provider or model has yet been verified. Passing the connection test does not establish that a model can generate a valid graph or complete every operation.
 

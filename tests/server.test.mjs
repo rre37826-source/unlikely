@@ -161,7 +161,7 @@ test('expansion adds nodes but refuses to rewrite existing human-selected conten
 test('the shared protocol serves browser modules and expands a delta without rewriting the original graph', async t => {
   const delta = { delta: { clusters: [], nodes: [{ id: 'new', label: words('New'), description: words('New angle'), cluster: 'c1', kind: 'concept' }], edges: [{ id: 'new-e', source: 'n0', target: 'new', label: words('Relation'), reason: words('Shared structure'), kind: 'analogy' }] } };
   const url = await withServer(t, { env, fetchImpl: provider(delta) });
-  for (const path of ['/model-client.mjs', '/model-protocol.mjs']) assert.equal((await fetch(url + path)).status, 200);
+  for (const path of ['/model-client.mjs', '/model-protocol.mjs', '/model-errors.mjs']) assert.equal((await fetch(url + path)).status, 200);
   const policy = (await fetch(url + '/core.mjs')).headers.get('content-security-policy');
   assert.match(policy, /connect-src 'self' https: http:\/\/localhost:\* http:\/\/127\.0\.0\.1:\*/);
   assert.doesNotMatch(policy, /connect-src[^;]*\shttp:\s/);
@@ -181,4 +181,17 @@ test('model error codes and optional seeds have the same behavior through the lo
   assert.equal((await result.json()).code, 'AUTH');
   const insecureUrl = await withServer(t, { env: { ...env, MODEL_BASE_URL: 'http://provider.example/v1' } });
   assert.deepEqual(await (await fetch(insecureUrl + '/api/status')).json(), { configured: false, model: null });
+});
+
+test('local proxy preserves safe provider diagnostics while excluding the raw private error body', async t => {
+  const url = await withServer(t, { env, fetchImpl: async () => new Response(JSON.stringify({ error: {
+    code: 'model_not_found', param: 'model', message: `private task and ${env.MODEL_API_KEY}`
+  } }), { status: 404 }) });
+  const result = await post(url, '/api/generate', { task: 'A private task' });
+  const body = await result.json();
+  assert.equal(body.code, 'MODEL_NOT_FOUND');
+  assert.equal(body.httpStatus, 404);
+  assert.deepEqual(body.providerDetails, { errorCode: 'model_not_found', parameter: 'model' });
+  assert.equal(JSON.stringify(body).includes(env.MODEL_API_KEY), false);
+  assert.equal(JSON.stringify(body).includes('private task'), false);
 });

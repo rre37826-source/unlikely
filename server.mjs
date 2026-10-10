@@ -12,6 +12,7 @@ const STATIC = new Map([
   ['/examples.mjs', ['examples.mjs', 'text/javascript; charset=utf-8']], ['/style.css', ['style.css', 'text/css; charset=utf-8']],
   ['/config.mjs', ['config.mjs', 'text/javascript; charset=utf-8']],
   ['/layout.mjs', ['layout.mjs', 'text/javascript; charset=utf-8']],
+  ['/model-errors.mjs', ['model-errors.mjs', 'text/javascript; charset=utf-8']],
   ['/model-client.mjs', ['model-client.mjs', 'text/javascript; charset=utf-8']],
   ['/model-protocol.mjs', ['model-protocol.mjs', 'text/javascript; charset=utf-8']],
   ['/social-preview.png', ['social-preview.png', 'image/png']],
@@ -116,7 +117,7 @@ export function createAppServer({ fetchImpl = fetch, env = process.env } = {}) {
     } catch (error) {
       if (!res.headersSent && !res.destroyed) {
         const known = error instanceof HttpError || error instanceof ModelError;
-        response(res, known ? error.status : 500, { error: known ? error.message : 'An unexpected server error occurred. Please try again.', ...(error instanceof ModelError ? { code: error.code } : {}) });
+        response(res, known ? error.status : 500, { error: known ? error.message : 'An unexpected server error occurred. Please try again.', ...(error instanceof ModelError ? { code: error.code, ...(Number.isInteger(error.httpStatus) ? { httpStatus: error.httpStatus } : {}), ...(error.providerDetails ? { providerDetails: error.providerDetails } : {}) } : {}) });
       }
       else res.end();
     }

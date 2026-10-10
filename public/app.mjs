@@ -3,6 +3,7 @@ import { text, validateGraph, validateProject, routeEdges, findShortestPath, rou
 import { REPOSITORY_URL } from './config.mjs';
 import { normalizeConnection, testConnection, requestModel } from './model-client.mjs';
 import { layoutGraph } from './layout.mjs';
+import { describeModelError } from './model-errors.mjs';
 
 const $ = id => document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
@@ -130,29 +131,14 @@ function updateLanguage(){
 }
 function updateDestination(){
   let destination='';try{const url=new URL($('model-base').value);destination=url.origin+url.pathname;}catch{}
-  $('connection-destination').textContent=destination?L(`Send the key and a short test request to: ${destination}`,`将向此地址发送密钥和一条简短测试请求：${destination}`):L('Enter your own provider’s API address. The test makes one small model request.','请填写你自己的模型服务地址。测试会发起一次简短的模型请求。');
+  $('connection-destination').textContent=destination?L(`Send the key and one test request to: ${destination}`,`将向此地址发送密钥和一次模型测试请求：${destination}`):L('Enter your own provider’s API address. The test makes one model request; reasoning tokens may also be billed.','请填写你自己的模型服务地址。测试会发起一次模型请求，思考过程也可能计费。');
 }
 function openConnection(forGeneration=false,operation=null){
   stopTour();pendingGenerate=forGeneration;pendingExpansion=operation;$('connection-error').hidden=true;$('model-key').value='';
   if(browserConnection){$('model-base').value=browserConnection.baseUrl;$('model-name').value=browserConnection.model;}
   updateLanguage();$('connection-dialog').showModal();
 }
-function connectionError(error){
-  const messages={
-    CONFIG:['Check the API URL, model name, and key. Use HTTPS, or a local address when running locally.','请检查服务地址、模型名称和密钥。使用 HTTPS 地址，本地运行时可使用本地地址。'],
-    INPUT:['The task or selected route needs checking. Keep the task concise and choose a valid route.','请检查任务或所选路线。任务不要过长，路线需包含有效节点。'],
-    AUTH:['The provider rejected this key or model access. Check its permissions.','服务商拒绝了这组密钥或模型权限，请检查配置。'],
-    RATE_LIMIT:['The provider reports a limit or insufficient quota. Check your account or try later.','服务商提示限流或额度不足，请检查账户或稍后再试。'],
-    NETWORK:['Could not reach the provider. Check the URL and network. If it blocks browser requests (CORS), use the local server instead.','无法连接服务商，请检查地址和网络。如果服务商禁止浏览器直连（CORS），请改用本地服务器方式。'],
-    PROVIDER:['The provider could not complete this request. Check the model name and JSON-output support.','服务商未能完成请求，请检查模型名称及 JSON 输出支持。'],
-    INVALID_RESPONSE:['The model returned an unreadable result. Try again or use a model that supports JSON output.','模型没有返回可读取的结构化结果。可重试，或换用支持 JSON 输出的模型。'],
-    INVALID_GRAPH:['The model returned an incomplete map. Your previous map is unchanged. Try again or choose another model.','模型返回的网络不完整，原来的网络没有改变。可以重试或更换模型。'],
-    TIMEOUT:['The request timed out. Your previous map is unchanged. Try a faster model or a shorter task.','请求超时，原来的网络没有改变。可以尝试更快的模型或缩短任务。'],
-    ABORTED:['Stopped. Your previous work is still here.','已停止，原来的探索仍然保留。']
-  };
-  const code=error.name==='AbortError'?'ABORTED':error.code;
-  return messages[code]?L(...messages[code]):L('The request failed. Your previous work is still here.','请求未能完成，原来的探索仍然保留。');
-}
+function connectionError(error){return describeModelError(error,lang);}
 async function connectModel(event){
   event.preventDefault();if(connectionController)return;
   let candidate;try{candidate=normalizeConnection({baseUrl:$('model-base').value.trim(),model:$('model-name').value.trim(),apiKey:$('model-key').value.trim()});}catch(error){$('connection-error').textContent=connectionError(error);$('connection-error').hidden=false;return;}
@@ -313,7 +299,7 @@ async function api(url,body,message){
     else{
       const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
       try{result=await response.json();}catch(error){if(controller.signal.aborted||error.name==='AbortError')throw Object.assign(new Error('Stopped'),{code:'ABORTED'});throw Object.assign(new Error('Invalid response'),{code:'INVALID_RESPONSE'});}
-      if(!response.ok)throw Object.assign(new Error('Provider request failed'),{code:result.code||'PROVIDER'});
+      if(!response.ok)throw Object.assign(new Error('Provider request failed'),{code:result.code||'PROVIDER',httpStatus:result.httpStatus,providerDetails:result.providerDetails});
     }
     if(controller.signal.aborted)throw Object.assign(new Error('Stopped'),{code:'ABORTED'});return result;
   }catch(error){if(timedOut)throw Object.assign(new Error('Timeout'),{code:'TIMEOUT'});throw error;}

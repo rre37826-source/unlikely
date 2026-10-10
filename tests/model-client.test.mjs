@@ -113,7 +113,7 @@ test('append-only expansion combines the delta while preserving the original gra
 });
 
 test('provider errors are classified, redact raw responses and never trigger paid retries', async () => {
-  for (const [status, code] of [[401, 'AUTH'], [403, 'AUTH'], [429, 'RATE_LIMIT'], [500, 'PROVIDER'], [302, 'NETWORK']]) {
+  for (const [status, code] of [[401, 'AUTH'], [403, 'AUTH'], [429, 'RATE_LIMIT'], [500, 'PROVIDER_UNAVAILABLE'], [302, 'NETWORK']]) {
     let calls = 0;
     await assert.rejects(testConnection(config, { fetchImpl: async () => { calls++; return new Response(`Provider error contains ${config.apiKey}`, { status }); } }), codeIs(code));
     assert.equal(calls, 1);
@@ -171,4 +171,150 @@ test('request validation uses the original snapshot even when the caller edits t
   } });
   assert.equal(result.title, 'Snapshot');
   assert.ok(expectedIds.length >= 2);
+});
+
+test('official Kimi connection checks use model-specific reasoning options without changing real task settings', async () => {
+  const models = [
+    ['kimi-k2.6', { max_tokens: 1024, thinking: { type: 'disabled' } }],
+    ['kimi-k3', { max_tokens: 4096, reasoning_effort: 'low' }],
+    ['kimi-k2.7-code', { max_tokens: 4096 }],
+    ['kimi-k2.7-code-highspeed', { max_tokens: 4096 }]
+  ];
+  for (const host of ['api.moonshot.cn', 'api.moonshot.ai']) for (const [model, expected] of models) {
+    let calls = 0;
+    const connection = { ...config, baseUrl: `https://${host}/v1`, model };
+    await testConnection(connection, { fetchImpl: async (_, options) => {
+      calls++;
+      const request = JSON.parse(options.body);
+      const actual = Object.fromEntries(['max_tokens', 'thinking', 'reasoning_effort'].filter(key => key in request).map(key => [key, request[key]]));
+      assert.deepEqual(actual, expected, `${host}/${model}`);
+      assert.deepEqual(request.response_format, { type: 'json_object' });
+      assert.equal('temperature' in request, false);
+      return response({ ok: true });
+    } });
+    assert.equal(calls, 1);
+    await requestModel('generate', { task: 'Make a film', seed: 'Lemon' }, connection, { fetchImpl: async (_, options) => {
+      calls++;
+      const request = JSON.parse(options.body);
+      assert.equal('thinking' in request, false);
+      assert.equal('reasoning_effort' in request, false);
+      assert.equal('max_tokens' in request, false);
+      return response(originalGraph());
+    } });
+    assert.equal(calls, 2, 'One connection check plus one explicit generation; never a hidden retry.');
+  }
+});
+
+test('retired official model IDs fail locally while third-party aliases and unknown models are not guessed', async () => {
+  let calls = 0;
+  const fetchImpl = async () => { calls++; return response({ ok: true }); };
+  for (const host of ['api.moonshot.cn', 'api.moonshot.ai']) {
+    const retired = { ...config, baseUrl: `https://${host}/v1`, model: 'kimi-k2.5' };
+    for (const attempt of [
+      () => testConnection(retired, { fetchImpl }),
+      () => requestModel('generate', { task: 'Make a film' }, retired, { fetchImpl })
+    ]) await assert.rejects(attempt(), error => {
+      assert.equal(error.code, 'MODEL_RETIRED');
+      assert.equal(error.httpStatus, undefined, 'A local preflight must not fabricate an HTTP response.');
+      assert.deepEqual(error.providerDetails, { parameter: 'model' });
+      return true;
+    });
+  }
+  assert.equal(calls, 0);
+  for (const [baseUrl, model] of [
+    ['https://provider.example/v1', 'kimi-k2.5'],
+    ['https://provider.example/v1', 'kimi-k2.6'],
+    ['https://api.moonshot.cn.attacker.example/v1', 'kimi-k2.6'],
+    ['https://api.moonshot.cn/v1/proxy', 'kimi-k2.6'],
+    ['https://api.moonshot.cn/v1', 'kimi-k2.6-unverified-alias']
+  ]) await testConnection({ ...config, baseUrl, model }, { fetchImpl: async (_, options) => {
+    const request = JSON.parse(options.body);
+    assert.equal('thinking' in request, false);
+    assert.equal('reasoning_effort' in request, false);
+    assert.equal(request.max_tokens, 4096);
+    return response({ ok: true });
+  } });
+});
+
+test('provider diagnostics distinguish models, JSON parameters, token limits, quota, rate limits and outages', async () => {
+  const cases = [
+    [404, { type: 'resource_not_found_error', message: 'Model unavailable' }, 'MODEL_NOT_FOUND', { errorCode: 'resource_not_found_error' }],
+    [400, { code: 'model_not_found', param: 'model', message: 'Private model name' }, 'MODEL_NOT_FOUND', { errorCode: 'model_not_found', parameter: 'model' }],
+    [400, { type: 'invalid_request_error', param: 'response_format', message: 'Invalid parameter' }, 'JSON_UNSUPPORTED', { errorCode: 'invalid_request_error', parameter: 'response_format' }],
+    [400, { type: 'invalid_request_error', message: 'response_format is not supported' }, 'JSON_UNSUPPORTED', { errorCode: 'invalid_request_error', parameter: 'response_format' }],
+    [400, { type: 'invalid_request_error', param: 'max_tokens', message: 'Too small' }, 'TOKEN_LIMIT', { errorCode: 'invalid_request_error', parameter: 'max_tokens' }],
+    [400, { type: 'invalid_request_error', message: 'max_completion_tokens is too large' }, 'TOKEN_LIMIT', { errorCode: 'invalid_request_error', parameter: 'max_completion_tokens' }],
+    [400, { code: 'context_length_exceeded', message: 'Too long' }, 'TOKEN_LIMIT', { errorCode: 'context_length_exceeded' }],
+    [400, { type: 'invalid_request_error', message: 'Input token length too long' }, 'TOKEN_LIMIT', { errorCode: 'invalid_request_error' }],
+    [429, { type: 'exceeded_current_quota_error', message: 'Balance too low' }, 'QUOTA', { errorCode: 'exceeded_current_quota_error' }],
+    [429, { code: 'insufficient_quota', message: 'Quota exceeded' }, 'QUOTA', { errorCode: 'insufficient_quota' }],
+    [402, { message: 'Balance too low' }, 'QUOTA', undefined],
+    [429, { type: 'rate_limit_reached_error', message: 'RPM limit' }, 'RATE_LIMIT', { errorCode: 'rate_limit_reached_error' }],
+    [429, { type: 'engine_overloaded_error', message: 'Busy' }, 'PROVIDER_UNAVAILABLE', { errorCode: 'engine_overloaded_error' }],
+    [503, { type: 'server_unavailable', message: 'Unavailable' }, 'PROVIDER_UNAVAILABLE', { errorCode: 'server_unavailable' }],
+    [401, { type: 'incorrect_api_key_error', message: 'Wrong key' }, 'AUTH', { errorCode: 'incorrect_api_key_error' }],
+    [403, { type: 'permission_denied_error', message: 'Forbidden' }, 'AUTH', { errorCode: 'permission_denied_error' }],
+    [400, { type: 'invalid_request_error', param: 'thinking', message: 'Unsupported setting' }, 'PROVIDER', { errorCode: 'invalid_request_error', parameter: 'thinking' }]
+  ];
+  for (const [status, providerError, expectedCode, expectedDetails] of cases) {
+    let calls = 0;
+    await assert.rejects(testConnection(config, { fetchImpl: async () => {
+      calls++;
+      return new Response(JSON.stringify({ error: providerError }), { status });
+    } }), error => {
+      assert.equal(error.code, expectedCode, `${status}/${JSON.stringify(providerError)}`);
+      assert.equal(error.httpStatus, status);
+      assert.deepEqual(error.providerDetails, expectedDetails);
+      return true;
+    });
+    assert.equal(calls, 1);
+  }
+});
+
+test('diagnostic fields are allowlisted and never include provider messages, credentials, tasks or unknown parameters', async () => {
+  const privateTask = 'UNIQUE_PRIVATE_TASK_CONTENT';
+  const providerError = { code: config.apiKey, type: 'invalid_request_error', param: privateTask, message: `${config.apiKey} ${privateTask}`, debug: { task: privateTask, authorization: config.apiKey } };
+  await assert.rejects(requestModel('generate', { task: privateTask }, config, { fetchImpl: async () => new Response(JSON.stringify({ error: providerError, request: { task: privateTask } }), { status: 400 }) }), error => {
+    assert.equal(error.code, 'PROVIDER');
+    assert.deepEqual(error.providerDetails, { errorCode: 'invalid_request_error' });
+    for (const value of [JSON.stringify(error), error.message, error.stack]) {
+      assert.equal(value.includes(config.apiKey), false);
+      assert.equal(value.includes(privateTask), false);
+    }
+    assert.equal('cause' in error, false);
+    return true;
+  });
+});
+
+test('oversized or non-JSON error bodies are bounded and do not become diagnostic text', async () => {
+  let cancelled = false;
+  const stream = new ReadableStream({
+    start(controller) { controller.enqueue(new TextEncoder().encode('x'.repeat(17 * 1024))); },
+    cancel() { cancelled = true; }
+  });
+  await assert.rejects(testConnection(config, { fetchImpl: async () => new Response(stream, { status: 400 }) }), error => {
+    assert.equal(error.code, 'PROVIDER');
+    assert.equal(error.providerDetails, undefined);
+    assert.equal(error.httpStatus, 400);
+    return true;
+  });
+  assert.equal(cancelled, true);
+  await assert.rejects(testConnection(config, { fetchImpl: async () => new Response(`<html>${config.apiKey}</html>`, { status: 503 }) }), codeIs('PROVIDER_UNAVAILABLE'));
+});
+
+test('finish_reason length is reported before parsing incomplete or superficially valid JSON, without retry', async () => {
+  for (const content of ['{"ok":', '{"ok":true}', '']) {
+    let calls = 0;
+    await assert.rejects(testConnection(config, { fetchImpl: async () => {
+      calls++;
+      return new Response(JSON.stringify({ choices: [{ finish_reason: 'length', message: { content, reasoning_content: 'Private reasoning that must not be surfaced' } }] }));
+    } }), error => {
+      assert.equal(error.code, 'OUTPUT_TRUNCATED');
+      assert.equal(error.httpStatus, 200);
+      assert.equal(error.providerDetails, undefined);
+      assert.equal(JSON.stringify(error).includes('Private reasoning'), false);
+      return true;
+    });
+    assert.equal(calls, 1);
+  }
 });
