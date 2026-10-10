@@ -1,32 +1,22 @@
 # Contributing to Unlikely
 
-The most useful contribution is a connection someone can inspect, question, and turn into a better idea.
+Bring a concrete task, a connection worth exploring, or a reproducible problem. Contributions to examples, accessibility, translations, model compatibility, and the exploration experience are welcome.
 
-We welcome examples, improvements to exploration and accessibility, bug reports, translations, and reproducible model-compatibility reports. Please keep changes focused on a concrete task or problem.
+## Add an example
 
-## Contribute an example
+Use `public/examples.mjs` as the format. Include:
 
-Start an issue or pull request with:
+1. **Task and constraints:** what someone wants to make, for whom, and within what limits.
+2. **Seed:** an object, word, event, or observation to explore.
+3. **Explained relationships:** what the ideas share, what could transfer, and where the comparison stops working.
+4. **A complete route and outcome:** ordered nodes connected by actual edges, leading to a useful creative direction.
+5. **Assumptions:** what still needs judgment, evidence, or an experiment.
 
-1. **Task:** what the person wants to make, for whom, and within which constraints.
-2. **Seed:** the word, event, object, or observation that starts the exploration.
-3. **Relationships:** explain what the connected ideas share, what might transfer, and where the comparison stops working. A surprising pair alone is not enough.
-4. **A complete route:** an ordered sequence through actual graph edges, with an authored outcome suited to the task.
-5. **Assumptions:** what still needs creative judgment, factual checking, or a practical experiment.
+Provide English and Simplified Chinese labels, descriptions, relationship explanations, route titles, outcomes, and assumptions. Mark incomplete translations clearly. Existing demos have six clusters, 31 nodes, and two complete routes per task; new examples should offer meaningfully different directions rather than near-synonyms.
 
-Use `public/examples.mjs` as the starting format. Labels, descriptions, relationship explanations, route titles, outcomes, and assumptions have English and Simplified Chinese versions. Translation help is welcome; label unfinished translations rather than silently substituting unrelated text.
+Label relationships as `association`, `analogy`, or `hypothesis`. These are roles, not evidence ratings. Cite sources in the pull request when a connection relies on a specific external fact; keep proposed effects and applications distinct from verified claims.
 
-Use relationship kinds deliberately:
-
-- `association`: a stated conceptual or contextual relationship.
-- `analogy`: a comparison between different domains or mechanisms; explain both the shared structure and its limits.
-- `hypothesis`: a proposed effect, application, or interpretation that remains to be tested.
-
-An `association` label does not make a statement verified. Cite a relevant source in the pull request when an example depends on a specific external fact. Keep creative possibilities distinguishable from established evidence. Do not add unsupported claims about medical effectiveness, investment returns, product performance, or commercial demand.
-
-Prefer several meaningfully different directions over a larger set of near-synonyms. Include cross-cluster connections and task-specific application nodes. The current demos use six clusters, 31 nodes, and two complete preset routes per task; preserve that shape when adding a comparable demo unless the change also explains and updates the experience.
-
-## Work on the code
+## Develop and check
 
 Requires Node.js 22.9.0 or newer. No dependency installation is needed.
 
@@ -36,32 +26,34 @@ npm test
 npm run check
 ```
 
-Open `http://127.0.0.1:4317`. For a UI change, try the affected interaction in both languages and a narrow viewport. Include a screenshot when it helps a reviewer understand the change. For route or graph logic, add or adjust a meaningful regression test.
+Open `http://127.0.0.1:4317`. Check UI changes in both languages and a narrow viewport. Add meaningful regression tests for changed graph, route, layout, or model behavior.
 
-Please preserve these behaviors:
+Preserve these boundaries:
 
-- Humans control route selection and the acceptance of suggested bridges.
-- Existing-path suggestions use existing edges; they do not invent relationship explanations.
-- Missing connections stay visible after reordering, export, or synthesis.
-- Curated outcomes, route summaries, imported content, and model drafts remain distinguishable.
-- Failed model requests do not overwrite the current map.
-- Provider keys remain on the local server, outside browser code and exported files.
+- Start with a task or a clearly labeled curated example, then enter the panoramic map.
+- Humans choose route nodes and accept suggested bridges; unresolved relationships stay visible.
+- Curated outcomes, route summaries, imports, and model drafts remain distinguishable.
+- Expansion appends a validated delta and preserves existing content. Failed requests do not overwrite the current map.
+- Browser connection settings—including API keys—stay in page memory, clear on refresh, and never enter `localStorage` or exports. Local `.env` keys stay on the server.
+- Connection tests make a small provider request; disclose that it can incur usage charges. Do not add hidden provider calls.
+
+Graphs accept 1–16 clusters, up to 150 nodes, and up to 400 edges. New model-generated maps currently request six clusters and 31–49 nodes; broader layout support also serves imported and expanded maps.
 
 ## Report model compatibility
 
-The initial adapter has mock-based tests; no real provider is currently claimed as verified. If you try one, report:
+Model integration has mock-based tests; no real provider is currently claimed as verified. A useful report includes:
 
-- Provider, model identifier, and test date.
-- Whether generate, expand, and synthesize were each attempted.
-- A small non-sensitive task and the observed result or sanitized error.
-- Whether JSON output and the required bilingual graph structure worked.
+- Provider, model identifier, date, and whether you used browser BYOK or the local server.
+- Connection-test, generation, expansion, and synthesis results separately.
+- Browser CORS support, JSON-object output, and whether the bilingual graph passed validation.
+- A small non-sensitive task, relevant constraints, and a sanitized error or result.
 
-Never include API keys, your `.env`, private task data, or raw sensitive provider logs. A configuration that passes one operation should not be reported as support for all three.
+A passing connection test is not proof that all operations work. Testing and generation use your provider account and may be billable. Never include keys, `.env` contents, private tasks, or sensitive logs in an issue, screenshot, fixture, or pull request.
 
 ## Report a bug
 
-Include the steps to reproduce, expected and actual behavior, browser, viewport if relevant, and whether you used a curated example, an import, or a model. An exported minimal JSON project is helpful when it contains no private material.
+Describe reproduction steps, expected and actual behavior, browser, and relevant viewport. State whether the content was curated, imported, or model-generated. A minimal exported JSON project is useful if it contains no private material.
 
 ## License
 
-By submitting a contribution, you agree to make it available under this project's [MIT license](LICENSE). Please contribute only material you have the right to share.
+Contributions are made under the project's [MIT license](LICENSE). Share only material you have the right to contribute.

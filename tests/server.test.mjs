@@ -69,6 +69,8 @@ test('live generation calls the configured provider and validates returned topol
   assert.equal(call.address, 'https://provider.example/v1/chat/completions');
   assert.equal(call.options.headers.Authorization, 'Bearer test-private-secret');
   assert.equal(JSON.parse(call.options.body).model, 'test-model');
+  assert.equal(call.options.redirect, 'error');
+  assert.equal(call.options.credentials, 'omit');
   assert.equal(JSON.parse(JSON.parse(call.options.body).messages[1].content).language, 'zh');
   assert.equal(JSON.stringify(data).includes(env.MODEL_API_KEY), false);
   const invalid = graph();
@@ -154,4 +156,29 @@ test('expansion adds nodes but refuses to rewrite existing human-selected conten
   const changed = await post(url, '/api/expand', { project: project(), nodeId: 'n2', operation: 'analogy' });
   assert.equal(changed.status, 502);
   assert.match((await changed.json()).error, /modify existing content/);
+});
+
+test('the shared protocol serves browser modules and expands a delta without rewriting the original graph', async t => {
+  const delta = { delta: { clusters: [], nodes: [{ id: 'new', label: words('New'), description: words('New angle'), cluster: 'c1', kind: 'concept' }], edges: [{ id: 'new-e', source: 'n0', target: 'new', label: words('Relation'), reason: words('Shared structure'), kind: 'analogy' }] } };
+  const url = await withServer(t, { env, fetchImpl: provider(delta) });
+  for (const path of ['/model-client.mjs', '/model-protocol.mjs']) assert.equal((await fetch(url + path)).status, 200);
+  const policy = (await fetch(url + '/core.mjs')).headers.get('content-security-policy');
+  assert.match(policy, /connect-src 'self' https: http:\/\/localhost:\* http:\/\/127\.0\.0\.1:\*/);
+  assert.doesNotMatch(policy, /connect-src[^;]*\shttp:\s/);
+  const result = await post(url, '/api/expand', { project: project(), nodeId: 'n0', operation: 'bridge' });
+  assert.equal(result.status, 200);
+  const expanded = await result.json();
+  assert.equal(expanded.graph.nodes.length, 32);
+  assert.deepEqual(expanded.graph.nodes.slice(0, 31), graph().nodes);
+});
+
+test('model error codes and optional seeds have the same behavior through the local proxy', async t => {
+  const url = await withServer(t, { env, fetchImpl: provider(graph()) });
+  assert.equal((await post(url, '/api/generate', { task: 'Create a game', seed: '', constraints: 'Two players' })).status, 200);
+  const badUrl = await withServer(t, { env, fetchImpl: async () => new Response('Private provider details', { status: 401 }) });
+  const result = await post(badUrl, '/api/generate', { task: 'Create a game' });
+  assert.equal(result.status, 502);
+  assert.equal((await result.json()).code, 'AUTH');
+  const insecureUrl = await withServer(t, { env: { ...env, MODEL_BASE_URL: 'http://provider.example/v1' } });
+  assert.deepEqual(await (await fetch(insecureUrl + '/api/status')).json(), { configured: false, model: null });
 });
