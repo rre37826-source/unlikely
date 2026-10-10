@@ -15,6 +15,8 @@
 - Sites/Vinext adapter: production build and TypeScript passed; generated D1 migration checked against the canonical schema. Local status, OPTIONS, noindex and disabled request smoke checks passed.
 - Public gateway deployed successfully at https://unlikely-trial.blue-lynx-3990.chatgpt.site. Public status returned HTTP 200 with `available:false`, `TRIAL_DISABLED`, `dailyLimit:3`, correct GitHub origin CORS, and no-store headers.
 
+- GitHub Pages run `38035074559` succeeded. The deployed frontend was opened in the browser and displayed Advanced plus the honest “Online generation is being prepared” state from the public gateway; English and Chinese checked. `docs/start.png` was refreshed from the deployed page.
+
 ## Activation boundary
 
 The public trial is **not activated**: `TRIAL_ENABLED=false`, monthly budget `0`, no operator model credential. No real model generation or provider billing behavior has been verified. The public frontend must say generation is being prepared and continue offering curated examples. Opening the paid path requires a dedicated owner-supplied key, authorized budget, verified provider pricing/caps, and a real end-to-end check.
