@@ -4,9 +4,9 @@
 
 An open-source tool for finding creative directions in writing, products, business, and your own tasks. Start with something you want to make, explore unexpected connections, and choose the ideas worth developing.
 
-**[Try the examples](https://rre37826-source.github.io/unlikely/)** · [Run locally](#run-locally) · [简体中文](README.zh-CN.md)
+**[Try Unlikely](https://rre37826-source.github.io/unlikely/)** · [Run locally](#run-locally) · [简体中文](README.zh-CN.md)
 
-**Available now:** three complete examples, no account or model setup needed. **Public live generation is being prepared**; operator credentials and budget configuration are not in place yet. Bringing your own model remains an optional advanced feature.
+**Limited public trial is enabled:** submit your own task without an account or API key. Usage limits apply. Three complete examples are also free to explore without model calls. Bringing your own model remains an optional advanced feature.
 
 ![Unlikely's starting screen with a task composer and three ready-made examples](docs/start.png)
 
@@ -32,11 +32,15 @@ All three curated examples start from **lemon concentrate**, each with 31 nodes 
 
 These are **authored examples, not live generation**. Exact preset routes show their authored outcomes. Without a model service, other routes summarize selected nodes and existing relationships rather than generating a new proposal.
 
-## Public trial: preparing to open
+## Public trial
 
-The public-trial gateway is implemented but **not activated**. When configured and verified, it is intended to let visitors generate without signing up or entering a key. The default quota is three model operations per anonymous session per day, shared by generation, expansion, and synthesis; additional IP, global, concurrency, and budget limits apply.
+The hosted gateway is deployed and enabled, with operator credentials and a monthly budget configured. Visitors can request generation without signing up or supplying a key.
 
-While unavailable or out of quota, the app keeps your current work and offers examples or a retry where appropriate. It does not require an API-key form to continue. See [public-trial setup and limits](docs/public-trial.md) for the activation requirements and data handling.
+The default limits are three model operations per anonymous session **and per IP address per UTC day**, shared by generation, expansion, and synthesis; the tighter allowance wins. Global usage, concurrency, and monthly budget limits also apply. Curated examples remain free and do not consume this allowance.
+
+A real Kimi K2.6 result passed graph validation and was imported into the public frontend. A successful request through the updated public generation flow remains unverified: the test IP had already used its daily allowance. Real expansion and synthesis remain mock-tested only. See the [v0.3.1 verification record](docs/verification-v0.3.1.md).
+
+While unavailable or out of quota, the app keeps your current work and offers examples or a retry where appropriate. It does not require an API-key form to continue. See [public-trial setup and limits](docs/public-trial.md) for quota rules and data handling.
 
 ## Advanced: bring your own model
 
@@ -46,7 +50,7 @@ Open the optional model settings and enter an API base URL, model name, and API 
 - Testing makes a model request; testing and subsequent generation, expansion, or synthesis may incur charges on **your provider account**, including reasoning charges where applicable.
 - Browser requests go directly to your chosen provider. If CORS blocks them, use the local server below.
 
-Integrations have mock-based tests; **no real provider or model is claimed as verified**. A successful connection test alone does not prove graph generation or all other operations work.
+Advanced BYOK integrations have mock-based tests. The direct Kimi K2.6 check above does not verify browser BYOK, other providers, or real expansion and synthesis. A successful connection test alone does not prove all operations work.
 
 ## Run locally
 
@@ -73,7 +77,7 @@ This server binds to `127.0.0.1` for local use. Public trial requests use a sepa
 | Item | Where it goes |
 | --- | --- |
 | Task, graph, route, and draft | This browser's `localStorage` when available; export JSON for a portable project copy. |
-| Public-trial content, once enabled | Through the gateway to its fixed model provider. The gateway does not persist task or graph content. |
+| Public-trial content | Through the gateway to its fixed model provider. The gateway does not persist task or graph content. |
 | Public-trial quota data | D1 accounting and request records use HMAC-derived quota identifiers; raw IP addresses are not stored there. |
 | Optional browser model settings | Page memory only; key, endpoint, and model clear on refresh and are excluded from storage and exports. |
 | Server model credentials | Remain on the server and are not sent to the browser. |

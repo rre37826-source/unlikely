@@ -1,16 +1,16 @@
 # Public trial
 
-**Status: implemented, not activated.** The public generator is preparing to open. Operator credentials and budget are not configured. Activation also requires review of the fixed pricing snapshot and provider-side billing limits. The gateway has been deployed and its disabled public endpoint verified; no successful real-provider generation is claimed. Three curated examples remain available without registration or model setup.
+**Status: limited public trial enabled.** The updated gateway is deployed with `TRIAL_ENABLED=true`, operator credentials, and a configured monthly budget. Visitors do not need an account or their own API key. The current browser check returned `TRIAL_QUOTA` because the test IP had already used its three daily operations; successful generation through the updated public entry point is not verified. A direct Kimi K2.6 response did pass local graph validation and frontend import. See the [v0.3.1 verification record](verification-v0.3.1.md). Three curated examples remain free and do not consume trial allowance.
 
 ## Experience
 
-The default custom-task path is intended to use a hosted gateway without asking visitors for their own key. BYOK remains a separate advanced option.
+The default custom-task path uses a hosted gateway without asking visitors for their own key. BYOK remains a separate advanced option.
 
 | State | What the visitor sees |
 | --- | --- |
-| Ready, after activation | A task can be submitted with a visible trial allowance. |
+| Ready | A task can be submitted with a visible trial allowance. |
 | Quota exhausted | Keep the current map; offer existing exploration and curated examples. |
-| Not configured | Explain that public generation is preparing to open; offer complete examples. |
+| Disabled or not configured | Explain that public generation is preparing to open; offer complete examples. |
 | Temporarily unavailable | Preserve existing work, explain the failure, and offer an appropriate retry or examples. |
 
 None of these states automatically opens an API-key form. A retry with the same request ID does not make another provider call, and does not replay a saved model result.
@@ -91,7 +91,7 @@ The configured budget is an application admission control, **not an absolute gua
 
 `trial/limits.mjs` contains a dated pricing snapshot and fixed operation ceilings. Reservations use those ceilings, include the framed request and output allowance, and do not discount cached input or refund based on reported usage. The snapshot does not update automatically.
 
-Before activation, the operator must recheck the snapshot against applicable pricing, including input, output/reasoning, and cache treatment; configure a positive explicit monthly budget; and set an appropriate provider-side hard spending cap. Do not assume a price from an older model or a different regional endpoint. If those assumptions cannot be established, keep the service disabled.
+Before activation, the operator must recheck the snapshot against applicable pricing, including input, output/reasoning, and cache treatment; configure a positive explicit monthly budget; and set an appropriate provider-side spending cap where available. Do not assume a price from an older model or a different regional endpoint. If those assumptions cannot be established, keep the service disabled.
 
 A stopped browser request does not prove that upstream computation or billing stopped. Keeping a reservation after failure is a conservative accounting rule, not proof that every possible charge is bounded.
 
@@ -103,10 +103,10 @@ D1 stores the quota, reservation, concurrency, and idempotency metadata needed t
 
 Frontend project persistence remains separate: tasks and graphs may be saved in the visitor's browser `localStorage`. Advanced BYOK credentials, endpoint, and model stay in page memory and are not exported. Public server credentials never go to the browser.
 
-## Activation and publication
+## Verification boundary
 
-An operator must finish the hosted configuration and verification before changing “preparing to open” to “available.” That work includes the hosting adapter, D1, an intentionally supplied server credential, quota/HMAC configuration, current price verification, a positive budget, and a provider-side cap.
+The latest gateway fix was saved and deployed, and public trial is enabled. A browser refresh confirmed the quota-exhausted state for the test IP. No further generation was attempted and the quota was not bypassed. Direct-provider generation and frontend import are separate checks; they do not establish successful generation through the updated public flow. Real expansion, synthesis, and browser BYOK remain unverified.
 
-Then verify the real public route, successful operations, quota exhaustion, disabled state, provider failure, and duplicate-ID behavior. Record which operations and model were actually tested. Mock tests, a healthy status endpoint, or a successful deployment alone are insufficient evidence that visitors can generate a working map.
+Describe the trial as enabled and limited, and record the operations actually tested. Operator setup includes D1, an intentionally supplied server credential, quota/HMAC configuration, current price verification, an explicit monthly budget, and a provider-side spending limit where available. Mock tests, a healthy status endpoint, or a successful deployment alone are insufficient evidence of a successful real generation.
 
-While inactive, the README and launch materials should promote the working curated examples. Do not advertise live no-key generation, unlimited use, or a guaranteed bill ceiling.
+Do not advertise unlimited use, a guaranteed result, or a guaranteed bill ceiling. Curated examples remain available when public operations are exhausted or unavailable.

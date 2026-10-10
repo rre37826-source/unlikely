@@ -1,5 +1,6 @@
 import { prepareModelRequest, validateModelResult } from '../public/model-protocol.mjs';
 import { DAILY_LIMIT, LIMITS, MODEL_BASE_URL, MODEL_NAME, TIMEOUT_MS, readConfig, reservation } from './limits.mjs';
+import { prepareTrialGeneration, normalizeTrialGeneration } from './protocol.mjs';
 import { admit, blocked, finish, isDuplicate, remaining, snapshot } from './ledger.mjs';
 
 const encoder = new TextEncoder();
@@ -74,22 +75,49 @@ function withSignal(promise, signal) {
 
 async function readBounded(body, maxBytes, signal, code) {
   if (!body) throw new TrialError(code);
-  const reader = body.getReader();
-  const chunks = [];
-  let size = 0;
+  checkSignal(signal);
+  let reader;
   try {
+    reader = body.getReader({ mode: 'byob' });
+    if (typeof reader.readAtLeast !== 'function') { reader.releaseLock(); reader = null; }
+  } catch { reader = null; }
+  reader ||= body.getReader();
+  const aggregate = typeof reader.readAtLeast === 'function';
+  // One fixed allocation bounds memory even when upstream fragments its body.
+  // One extra byte detects overflow without consuming the rest of the response.
+  let bytes = new Uint8Array(maxBytes + 1);
+  let size = 0;
+  let emptyReads = 0;
+  const read = async () => {
     while (true) {
-      const { value, done } = await withSignal(reader.read(), signal);
-      if (done) break;
-      size += value.byteLength;
-      if (size > maxBytes) throw new TrialError(code, code === 'INPUT' ? 413 : 502);
-      chunks.push(value);
+      let part;
+      if (aggregate) {
+        const length = Math.min(16_384, bytes.byteLength - size);
+        part = await reader.readAtLeast(Math.min(4_096, length), bytes.subarray(size, size + length));
+        // BYOB transfers the supplied buffer; the returned view owns it now.
+        bytes = new Uint8Array(part.value.buffer);
+      } else part = await reader.read();
+      checkSignal(signal);
+      if (part.done) break;
+      const length = part.value.byteLength;
+      if (size + length > maxBytes) throw new TrialError(code, code === 'INPUT' ? 413 : 502);
+      if (!length) {
+        if (++emptyReads > 1024) throw new TrialError(code, code === 'INPUT' ? 400 : 502);
+        continue;
+      }
+      emptyReads = 0;
+      if (!aggregate) bytes.set(part.value, size);
+      size += length;
     }
-  } finally { void reader.cancel().catch(() => {}); }
-  const bytes = new Uint8Array(size);
-  let offset = 0;
-  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
-  try { return { value: JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(bytes)), size }; }
+    return { bytes: bytes.subarray(0, size), size };
+  };
+  let result;
+  // The entire read has one abort listener, rather than one per network chunk.
+  // On cancellation, the finally block also cancels a stalled upstream reader.
+  try { result = await withSignal(read(), signal); }
+  finally { void reader.cancel().catch(() => {}); }
+  checkSignal(signal);
+  try { return { value: JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(result.bytes)), size: result.size }; }
   catch { throw new TrialError(code, code === 'INPUT' ? 400 : 502); }
 }
 
@@ -114,7 +142,10 @@ async function callProvider(action, payload, messages, config, fetchImpl, signal
     res = await withSignal(fetchImpl(`${MODEL_BASE_URL}/chat/completions`, {
       method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${config.apiKey}` },
       body: JSON.stringify({ model: MODEL_NAME, messages, response_format: { type: 'json_object' }, thinking: { type: 'disabled' }, max_completion_tokens: limit.outputTokens, stream: false }),
-      signal, redirect: 'error', credentials: 'omit', cache: 'no-store'
+      // workerd rejects redirect:'error' before sending the request. Manual
+      // returns 3xx unchanged; the !res.ok guard below rejects it, never sending
+      // the Authorization header or request body to a Location destination.
+      signal, redirect: 'manual', credentials: 'omit', cache: 'no-store'
     }), signal);
   } catch (error) {
     checkSignal(signal);
@@ -135,7 +166,7 @@ async function callProvider(action, payload, messages, config, fetchImpl, signal
   try { result = JSON.parse(choice.message.content); } catch { throw new TrialError('INVALID_RESPONSE', 502); }
   if (action === 'expand' && (!Array.isArray(result?.delta?.nodes) || result.delta.nodes.length < 3 || result.delta.nodes.length > 5 || !Array.isArray(result.delta.edges) || result.delta.edges.length > 12 || (result.delta.clusters?.length || 0) > 2)) throw new TrialError('INVALID_GRAPH', 502);
   checkSignal(signal);
-  return validateModelResult(action, payload, result);
+  return validateModelResult(action, payload, action === 'generate' ? { graph: normalizeTrialGeneration(result, payload.language || 'en') } : result);
 }
 
 /** Cloudflare/D1 adapter. No runtime DDL, persistence of prompts, or provider retries. */
@@ -187,8 +218,8 @@ export async function handleTrialRequest(request, { env = {}, db, fetchImpl = fe
     if (raw.size > limit.bodyBytes) throw new TrialError('INPUT', 413);
     visitor = await identity(request, body.sessionId, config.hmacSecret);
     let prepared;
-    try { prepared = prepareModelRequest(body.action, body.payload); } catch { throw new TrialError('INPUT'); }
-    const trialHint = body.action === 'generate' ? ' For this public trial, use exactly 31 nodes and 42–54 edges. Keep each description and reason to one concise sentence so the complete JSON fits the output limit.' : body.action === 'expand' ? ' Add 3–5 nodes, no more than 12 edges and at most 2 new clusters.' : '';
+    try { prepared = body.action === 'generate' ? prepareTrialGeneration(body.payload) : prepareModelRequest(body.action, body.payload); } catch { throw new TrialError('INPUT'); }
+    const trialHint = body.action === 'expand' ? ' Add 3–5 nodes, no more than 12 edges and at most 2 new clusters.' : '';
     const messages = [{ role: 'system', content: prepared.system + trialHint }, { role: 'user', content: JSON.stringify(prepared.input) }];
     if (encoder.encode(JSON.stringify(messages)).byteLength > limit.messageBytes) throw new TrialError('INPUT', 413);
     checkSignal(signal);

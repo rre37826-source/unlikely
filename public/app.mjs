@@ -111,7 +111,11 @@ function showHome(){
 function showWorkspace(){page='workspace';$('start-screen').hidden=true;$('workspace').hidden=false;hasSavedProject=true;$('new-task').hidden=false;requestAnimationFrame(fitMap);window.scrollTo({top:0,behavior:'instant'});}
 function updateProvider(){provider=chooseProvider(browserConnection,localProvider,trialState);updateLanguage();}
 async function refreshTrial(){trialState=await trialClient.status();updateProvider();}
-function showTrialUnavailable(){const message=trialMessage(trialState,lang);notice(message);if(page==='home'){$('task-error').textContent=message;$('task-error').hidden=false;}void refreshTrial();}
+async function showTrialUnavailable(){
+  notice(trialMessage({reason:'checking'},lang));await refreshTrial();
+  const message=trialMessage(trialState,lang);notice(message);
+  if(page==='home'){$('task-error').textContent=provider.configured?'':message;$('task-error').hidden=provider.configured;}
+}
 function updateLanguage(){
   document.documentElement.lang=lang;
   document.querySelectorAll('[data-i18n]').forEach(node=>node.textContent=T(node.dataset.i18n));

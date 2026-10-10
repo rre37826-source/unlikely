@@ -6,6 +6,7 @@ import { handleTrialRequest } from '../trial/index.mjs';
 import { admit, finish } from '../trial/ledger.mjs';
 import { LIMITS, PRICING_ID, TIMEOUT_MS, LEASE_MS, reservation } from '../trial/limits.mjs';
 import { EXAMPLES } from '../public/examples.mjs';
+import { normalizeTrialGeneration } from '../trial/protocol.mjs';
 
 const schema = await readFile(new URL('../trial/schema.sql', import.meta.url), 'utf8');
 const NOW = Date.parse('2026-10-10T12:00:00Z');
@@ -51,8 +52,17 @@ function status(sessionId = SESSION, ip = '203.0.113.1') {
   return new Request(`${HOST}/api/trial/status`, { headers: { Origin: ORIGIN, 'X-Trial-Session': sessionId, 'CF-Connecting-IP': ip } });
 }
 
-const completion = (result, finish_reason = 'stop') => Response.json({ choices: [{ message: { content: JSON.stringify(result) }, finish_reason }] });
+const completion = (result, finish_reason = 'stop') => Response.json({ choices: [{ message: { content: JSON.stringify(result === graph ? compactGraph : result) }, finish_reason }] });
 const graph = EXAMPLES[0].graph;
+const seed = graph.nodes.find(node => node.id === graph.seedId);
+const groups = graph.clusters.map(cluster => graph.nodes.filter(node => node.cluster === cluster.id && node.id !== graph.seedId));
+const numericIds = new Map([seed, ...groups.flat()].map((node, i) => [node.id, i]));
+const compactGraph = {
+  seed: { label: seed.label.zh, description: seed.description.zh },
+  clusters: graph.clusters.map((cluster, i) => ({ label: cluster.label.zh, nodes: groups[i].map(node => ({ label: node.label.zh, description: node.description.zh, kind: node.kind })) })),
+  edges: graph.edges.map(edge => ({ source: numericIds.get(edge.source), target: numericIds.get(edge.target), label: edge.label.zh, reason: edge.reason.zh, kind: edge.kind }))
+};
+const normalizedGraph = normalizeTrialGeneration(compactGraph);
 const project = { version: 1, ...EXAMPLES[0], route: EXAMPLES[0].curatedRoutes[0].nodeIds, provenance: 'curated' };
 const context = (db, fetchImpl, extra = {}) => ({ db, env: env(), now: () => NOW, fetchImpl, ...extra });
 const rows = db => db.sqlite.prepare('SELECT * FROM trial_requests').all();
@@ -96,7 +106,7 @@ test('generate sends one server-fixed nonthinking JSON request and stores only H
     calls++;
     assert.equal(url, 'https://api.moonshot.cn/v1/chat/completions');
     assert.equal(options.headers.Authorization, `Bearer ${KEY}`);
-    assert.equal(options.redirect, 'error');
+    assert.equal(options.redirect, 'manual');
     assert.equal(options.credentials, 'omit');
     const input = JSON.parse(options.body);
     assert.equal(input.max_completion_tokens, 16_384);
@@ -135,6 +145,34 @@ test('client provider settings and oversized inputs are rejected before admissio
   }
   assert.equal(calls, 0);
   assert.equal(rows(db).length, 0);
+});
+
+test('provider redirects are rejected without visiting Location or refunding the admission', async t => {
+  const db = database(t);
+  const destination = 'https://must-not-receive-key.invalid/collect';
+  const visits = [];
+  let cancelled = false;
+  const ctx = context(db, async (url, options) => {
+    visits.push(url);
+    assert.equal(options.redirect, 'manual');
+    assert.notEqual(url, destination);
+    return new Response(new ReadableStream({ cancel() { cancelled = true; } }), {
+      status: 302, headers: { Location: destination }
+    });
+  });
+  const res = await handleTrialRequest(request(1), ctx);
+  const body = await res.json();
+  assert.equal(res.status, 502);
+  assert.equal(body.code, 'PROVIDER');
+  assert.deepEqual(visits, ['https://api.moonshot.cn/v1/chat/completions']);
+  assert.equal(cancelled, true);
+  assert.equal(body.trial.remaining, 2);
+  assert.ok(!JSON.stringify(body).includes(destination));
+  assert.equal(rows(db)[0].reserved_microyuan, reservation('generate'));
+  assert.equal(rows(db)[0].outcome, 'PROVIDER');
+  assert.equal(rows(db)[0].lease_until, NOW);
+  assert.equal((await handleTrialRequest(request(1), ctx)).status, 409);
+  assert.equal(visits.length, 1);
 });
 
 test('concurrent POSTs admit only one provider call; duplicate ID never causes a second bill', async t => {
@@ -276,6 +314,68 @@ test('output byte ceiling is enforced even without a Content-Length header', asy
   const res = await handleTrialRequest(request(1), context(db, () => new Response('x'.repeat(LIMITS.generate.outputBytes + 1))));
   assert.equal((await res.json()).code, 'INVALID_RESPONSE');
   assert.equal(rows(db).length, 1);
+});
+
+test('one-byte UTF-8 fragments use a constant number of abort listeners and preserve the map', async t => {
+  const db = database(t);
+  const bytes = new TextEncoder().encode(JSON.stringify({ choices: [{ message: { content: JSON.stringify(compactGraph) }, finish_reason: 'stop' }] }));
+  let listenerCalls = 0;
+  const res = await handleTrialRequest(request(1), context(db, (_url, options) => {
+    const add = options.signal.addEventListener.bind(options.signal);
+    options.signal.addEventListener = (...args) => { listenerCalls++; return add(...args); };
+    let offset = 0;
+    return new Response(new ReadableStream({ pull(controller) {
+      if (offset === bytes.length) { controller.close(); return; }
+      controller.enqueue(bytes.slice(offset, ++offset));
+    } }));
+  }));
+  assert.equal(res.status, 200);
+  assert.deepEqual((await res.json()).graph, normalizedGraph);
+  assert.ok(listenerCalls <= 3, `Expected constant listener count, got ${listenerCalls}`);
+});
+
+test('valid JSON exactly at the byte cap succeeds while one byte over is rejected', async t => {
+  const db = database(t);
+  const encoded = JSON.stringify({ choices: [{ message: { content: JSON.stringify(compactGraph) }, finish_reason: 'stop' }] });
+  const byteLength = new TextEncoder().encode(encoded).byteLength;
+  for (const extra of [0, 1]) {
+    const padded = encoded + ' '.repeat(LIMITS.generate.outputBytes - byteLength + extra);
+    const res = await handleTrialRequest(request(extra + 1), context(db, () => new Response(padded)));
+    assert.equal(res.status, extra ? 502 : 200);
+    if (extra) assert.equal((await res.json()).code, 'INVALID_RESPONSE');
+  }
+  assert.equal(rows(db).length, 2);
+});
+
+test('cancelling a stalled response reader cancels its stream and retains the reservation', async t => {
+  const db = database(t);
+  const abort = new AbortController();
+  let reading;
+  const started = new Promise(resolve => { reading = resolve; });
+  let cancelled = false;
+  const pending = handleTrialRequest(request(1, { signal: abort.signal }), context(db, () => new Response(new ReadableStream({
+    pull() { reading(); return new Promise(() => {}); },
+    cancel() { cancelled = true; }
+  }, { highWaterMark: 0 }))));
+  await started;
+  abort.abort();
+  assert.equal((await (await pending).json()).code, 'ABORTED');
+  assert.equal(cancelled, true);
+  assert.equal(rows(db)[0].reserved_microyuan, reservation('generate'));
+  assert.equal(rows(db)[0].lease_until, NOW + LEASE_MS);
+});
+
+test('an endless empty-chunk stream cannot evade the body resource bound', async t => {
+  const db = database(t);
+  let chunks = 0;
+  let cancelled = false;
+  const res = await handleTrialRequest(request(1), context(db, () => new Response(new ReadableStream({
+    pull(controller) { chunks++; controller.enqueue(new Uint8Array(0)); },
+    cancel() { cancelled = true; }
+  }))));
+  assert.equal((await res.json()).code, 'INVALID_RESPONSE');
+  assert.ok(chunks <= 1027);
+  assert.equal(cancelled, true);
 });
 
 test('missing or broken D1 never sends a provider request', async t => {

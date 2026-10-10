@@ -13,7 +13,7 @@ await cp(join(root,'hosting/sites/drizzle'),join(destination,'drizzle'),{recursi
 await cp(join(root,'hosting/sites/cloudflare-env.d.ts'),join(destination,'cloudflare-env.d.ts'));
 await mkdir(join(destination,'trial'),{recursive:true});
 await mkdir(join(destination,'public'),{recursive:true});
-for(const file of ['index.mjs','ledger.mjs','limits.mjs'])await cp(join(root,'trial',file),join(destination,'trial',file));
+for(const file of ['index.mjs','ledger.mjs','limits.mjs','protocol.mjs'])await cp(join(root,'trial',file),join(destination,'trial',file));
 for(const file of ['core.mjs','model-protocol.mjs','model-errors.mjs'])await cp(join(root,'public',file),join(destination,'public',file));
 await writeFile(manifestPath+'.tmp',JSON.stringify({...manifest,d1:'DB',r2:null},null,2)+'\n');
 const {rename}=await import('node:fs/promises');await rename(manifestPath+'.tmp',manifestPath);

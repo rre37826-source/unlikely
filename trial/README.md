@@ -1,8 +1,12 @@
 # Public trial runtime
 
-This module is server-only. It performs no model requests by default. Tests use
-dummy keys, SQLite and mock HTTP responses; no real provider integration has
-been claimed or performed.
+This module is server-only. It performs no model requests by default. Automated
+tests use dummy keys, SQLite and mock HTTP responses. A real Kimi K2.6 response
+has passed normalization and graph validation, then been imported into the
+public frontend. The updated gateway is deployed and public trial is enabled.
+A successful request through the updated public flow remains unverified because
+the test IP's daily allowance was already exhausted.
+See the [v0.3.1 verification record](../docs/verification-v0.3.1.md).
 
 ## Host adapter
 
@@ -70,13 +74,50 @@ still be doing work. A definitive provider response releases it on completion.
 | expand | 262,144 B | 131,072 B | 4,096 | 65,536 B | 969,216 microyuan |
 | synthesize | 262,144 B | 49,152 B | 4,096 | 65,536 B | 436,736 microyuan |
 
-Generation asks for 31 nodes with short explanations. Expansion must be an
+Generation uses the compact protocol described below. Expansion must be an
 append-only delta with 3–5 nodes, at most 12 edges and at most 2 new clusters.
 The shared validators enforce graph connectivity and preserve original content.
 Requests are text only: no tools, browsing, image inputs, retries or follow-up
 model calls. Output uses JSON mode, disabled thinking and fixed
 `max_completion_tokens`. It may still fail to fit or validate; failure does not
 silently trigger another paid attempt.
+
+Server fetches use `redirect: 'manual'` because the deployed Cloudflare workerd
+runtime rejects `redirect: 'error'`. All 3xx responses fail without following
+`Location`, so the key and request body are never forwarded to another URL.
+Browser BYOK requests retain their separate browser-compatible redirect policy.
+
+### Compact generation and bounded reads
+
+`trial/protocol.mjs` asks for text in the requested language only (`en` or `zh`),
+without duplicate translations: one seed, six clusters of five nodes each,
+and 42–54 explained connections using numeric node positions. Provider labels
+are limited to 80 characters; descriptions and reasons to 240 characters before
+any server-added meaning prefix. Switching the UI language does not translate
+text already generated in one language.
+
+The server assigns structural IDs (`n0`–`n30`, `c0`–`c5`, and `e0` onward) and
+cluster membership from those positions. The seed belongs to `c0`. This conversion
+does not invent, repair, or add connections. The resulting graph must still pass
+the shared connectivity and cross-domain validation. Invalid content fails the
+attempt without another model call. This compact format applies only to public
+trial generation; expansion, synthesis, and optional BYOK retain their existing
+protocols.
+
+Two known node-kind aliases are accepted: `analogy` and `hypothesis` map to
+`concept`. Their meaning remains explicit in the description as `Analogy:` or
+`Creative hypothesis, unverified:` (or the corresponding Chinese prefix).
+Unknown node kinds still fail. Edge kinds and endpoints are unchanged; this
+normalization does not turn an uncertain claim into a verified fact.
+
+Request and provider-response readers accumulate bytes in one fixed buffer of
+the applicable limit plus one overflow-detection byte. On workerd, BYOB
+`readAtLeast` aggregates reads into that buffer; a standard-reader fallback
+copies bounded chunks into it. Cancellation covers the whole read and cancels
+the reader. JSON parsing occurs only after bounded, strict UTF-8 decoding.
+For generation, a provider response of exactly 262,144 bytes is allowed;
+262,145 bytes is rejected. These limits bound response accumulation, not the
+runtime's total memory use.
 
 Errors contain only a fixed message and code, optional `retryAfter` seconds,
 and, when available, `trial`. Codes are `TRIAL_DISABLED`, `TRIAL_CONFIG`,
@@ -136,7 +177,7 @@ or key. Retain rows to preserve budget and idempotency; any later cleanup policy
 must retain those guarantees. Hosting access logs and provider retention policies
 remain separate from this module. Do not log request bodies in the route adapter.
 
-Run `node --test tests/trial.test.mjs` on Node with `node:sqlite` available
+Run `node --test tests/trial.test.mjs tests/trial-protocol.test.mjs` on Node with `node:sqlite` available
 (Node 22.13+ or current Node 24; earlier Node 22 builds require
 `--experimental-sqlite`). Tests execute the actual SQL in an in-memory SQLite
 database and use mock provider responses only.
