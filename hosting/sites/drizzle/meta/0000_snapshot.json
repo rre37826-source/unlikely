@@ -1,0 +1,152 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "dd0d4790-77ed-4343-a45b-ad47b5192fe0",
+  "prevId": "00000000-0000-0000-0000-000000000000",
+  "tables": {
+    "trial_requests": {
+      "name": "trial_requests",
+      "columns": {
+        "request_id": {
+          "name": "request_id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "session_hash": {
+          "name": "session_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ip_hash": {
+          "name": "ip_hash",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "action": {
+          "name": "action",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "day_bucket": {
+          "name": "day_bucket",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "month_bucket": {
+          "name": "month_bucket",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "reserved_microyuan": {
+          "name": "reserved_microyuan",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "admitted_at": {
+          "name": "admitted_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "lease_until": {
+          "name": "lease_until",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "completed_at": {
+          "name": "completed_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "outcome": {
+          "name": "outcome",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "trial_month": {
+          "name": "trial_month",
+          "columns": [
+            "month_bucket"
+          ],
+          "isUnique": false
+        },
+        "trial_day": {
+          "name": "trial_day",
+          "columns": [
+            "day_bucket"
+          ],
+          "isUnique": false
+        },
+        "trial_session_day": {
+          "name": "trial_session_day",
+          "columns": [
+            "session_hash",
+            "day_bucket"
+          ],
+          "isUnique": false
+        },
+        "trial_ip_day": {
+          "name": "trial_ip_day",
+          "columns": [
+            "ip_hash",
+            "day_bucket"
+          ],
+          "isUnique": false
+        },
+        "trial_lease": {
+          "name": "trial_lease",
+          "columns": [
+            "lease_until"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "checkConstraints": {
+        "trial_action_valid": {
+          "name": "trial_action_valid",
+          "value": "\"trial_requests\".\"action\" IN ('generate', 'expand', 'synthesize')"
+        },
+        "trial_reserved_positive": {
+          "name": "trial_reserved_positive",
+          "value": "\"trial_requests\".\"reserved_microyuan\" > 0"
+        }
+      }
+    }
+  },
+  "views": {},
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}

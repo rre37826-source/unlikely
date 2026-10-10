@@ -23,7 +23,7 @@
     <nav class="top-actions" aria-label="Workspace actions">
       <button id="walkthrough" class="quiet-button" data-i18n="watch">20-second tour</button>
       <button id="new-task" class="quiet-button" data-i18n="newTask">Your own task</button>
-      <button id="connection-button" class="connection-button"><span class="connection-dot"></span><span id="connection-label">Connect a model</span></button>
+      <button id="connection-button" class="connection-button"><span class="connection-dot"></span><span id="connection-label">Advanced</span></button>
       <button id="language" class="language-button" aria-label="Switch language">中文</button>
       <a id="github-link" class="github-button" hidden target="_blank" rel="noopener noreferrer">GitHub ↗</a>
     </nav>
@@ -41,8 +41,10 @@
         <label for="seed-input" data-i18n="seedLabel">A word, object, or event to start from (optional)</label>
         <input id="seed-input" maxlength="160">
         <details class="constraints-details"><summary data-i18n="constraintsLabel">Add audience or constraints (optional)</summary><textarea id="constraints-input" rows="2" maxlength="1800" aria-label="Audience and constraints"></textarea></details>
+        <button type="button" id="example-quick-start" class="primary-button" data-open-example="writing" data-i18n="quickExample">Explore a complete example ↗</button>
         <button type="submit" id="generate-task" class="primary-button start-generate"><span data-i18n="generate">Generate my idea map</span><span aria-hidden="true">↗</span></button>
-        <p id="model-status" class="model-status"></p>
+        <p id="model-status" class="model-status" aria-live="polite"></p>
+        <p id="trial-privacy" class="trial-privacy" hidden data-i18n="trialPrivacy">Your task and relevant map content are sent to our model provider. Avoid sensitive information.</p>
         <p id="task-error" class="inline-error" hidden role="alert"></p>
       </form>
       <div class="resume-actions"><button id="resume-work" class="text-button" hidden data-i18n="resume">Continue my last map ↗</button><button id="home-import" class="text-button" data-i18n="openProject">Open a saved project</button></div>

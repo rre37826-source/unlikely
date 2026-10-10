@@ -44,6 +44,7 @@ function harness() {
     lang: 'en', exampleId: 'writing', selectedNode: 'seed', selectedEdge: null,
     project: null, brief: null, briefSource: '', tourTimers: [], requestController: null,
     browserConnection: { model: 'ui-regression-fixture' }, provider: { configured: true },
+    trialClient: {state: {available:false}}, trialState: {available:false}, updateProvider() {},
     $: dom, L: en => en, label: value => text(value, 'en'),
     Date: { now: () => now }, matchMedia: () => ({ matches: true }),
     setTimeout: (fn, delay) => later(fn, delay), clearTimeout: id => timeouts.delete(id),

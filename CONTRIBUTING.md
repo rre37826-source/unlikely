@@ -1,24 +1,16 @@
 # Contributing to Unlikely
 
-Bring a concrete task, a connection worth exploring, or a reproducible problem. Contributions to examples, accessibility, translations, model compatibility, and the exploration experience are welcome.
+Bring a concrete task, a connection worth exploring, or a reproducible problem. Examples, accessibility, translations, model compatibility, and exploration improvements are welcome.
 
 ## Add an example
 
-Use `public/examples.mjs` as the format. Include:
+Use `public/examples.mjs`. Include a task and constraints, a seed, explained relationships, a complete route through actual edges, an authored outcome, and assumptions that still need judgment or evidence.
 
-1. **Task and constraints:** what someone wants to make, for whom, and within what limits.
-2. **Seed:** an object, word, event, or observation to explore.
-3. **Explained relationships:** what the ideas share, what could transfer, and where the comparison stops working.
-4. **A complete route and outcome:** ordered nodes connected by actual edges, leading to a useful creative direction.
-5. **Assumptions:** what still needs judgment, evidence, or an experiment.
-
-Provide English and Simplified Chinese labels, descriptions, relationship explanations, route titles, outcomes, and assumptions. Mark incomplete translations clearly. Existing demos have six clusters, 31 nodes, and two complete routes per task; new examples should offer meaningfully different directions rather than near-synonyms.
-
-Label relationships as `association`, `analogy`, or `hypothesis`. These are roles, not evidence ratings. Cite sources in the pull request when a connection relies on a specific external fact; keep proposed effects and applications distinct from verified claims.
+Provide English and Simplified Chinese text. Existing examples have six clusters, 31 nodes, and two complete routes per task. Offer meaningfully different directions rather than near-synonyms. Label relationships as `association`, `analogy`, or `hypothesis`; these are roles, not evidence ratings. Cite sources in the pull request for specific external facts.
 
 ## Develop and check
 
-Requires Node.js 22.9.0 or newer. No dependency installation is needed.
+The local app requires Node.js 22.9.0 or newer, with no dependencies to install.
 
 ```sh
 npm start
@@ -26,34 +18,36 @@ npm test
 npm run check
 ```
 
-Open `http://127.0.0.1:4317`. Check UI changes in both languages and a narrow viewport. Add meaningful regression tests for changed graph, route, layout, or model behavior.
+Open `http://127.0.0.1:4317`. Check UI changes in both languages and a narrow viewport. Add meaningful regression tests for graph, route, layout, or model behavior. Graphs accept 1–16 clusters, up to 150 nodes, and up to 400 edges; newly generated maps currently request six clusters and 31–49 nodes.
 
-Preserve these boundaries:
+Preserve these behaviors:
 
-- Start with a task or a clearly labeled curated example, then enter the panoramic map.
-- Humans choose route nodes and accept suggested bridges; unresolved relationships stay visible.
+- Start from a task or clearly labeled curated example, then enter the panoramic map.
+- Humans select routes and accept suggested bridges; unresolved relationships stay visible.
 - Curated outcomes, route summaries, imports, and model drafts remain distinguishable.
-- Expansion appends a validated delta and preserves existing content. Failed requests do not overwrite the current map.
-- Browser connection settings—including API keys—stay in page memory, clear on refresh, and never enter `localStorage` or exports. Local `.env` keys stay on the server.
-- Connection tests make a small provider request; disclose that it can incur usage charges. Do not add hidden provider calls.
+- Expansion appends validated content. Failed requests do not overwrite the current map.
+- Public-trial limits, outages, and missing configuration never force visitors into an API-key form. BYOK is an optional advanced choice.
+- Browser model settings stay in page memory, clear on refresh, and never enter `localStorage` or exports. Server keys stay on the server.
+- BYOK connection tests make provider requests and may incur charges; do not hide those calls.
 
-Graphs accept 1–16 clusters, up to 150 nodes, and up to 400 edges. New model-generated maps currently request six clusters and 31–49 nodes; broader layout support also serves imported and expanded maps.
+## Public-trial changes
+
+Read [the public-trial contract](docs/public-trial.md). The code is implemented but not activated; credentials, budget, current pricing verification, and operator-side billing limits remain activation requirements.
+
+Keep D1 mandatory and configuration disabled by default. Model requests must pass the same server-side session, IP, global, concurrency, and budget checks regardless of how they reach the API. Do not accept client-supplied provider URLs, keys, models, prices, or token caps on the trial endpoint.
+
+Test atomic reservations, duplicate request IDs, exhausted limits, database failure, provider errors, and interrupted requests without real credentials or charges. A reservation is not refunded, and duplicate IDs must not repeat the upstream call. Do not persist prompts, graphs, or raw IP addresses in gateway storage. Mock tests are not evidence of a working public deployment or an absolute billing cap.
 
 ## Report model compatibility
 
-Model integration has mock-based tests; no real provider is currently claimed as verified. A useful report includes:
+No real provider is currently claimed as verified. Report provider, model, date, and access mode: public trial, browser BYOK, or local server. List connection-test, generation, expansion, and synthesis results separately, including browser CORS support and graph validation where relevant.
 
-- Provider, model identifier, date, and whether you used browser BYOK or the local server.
-- Connection-test, generation, expansion, and synthesis results separately.
-- Browser CORS support, JSON-object output, and whether the bilingual graph passed validation.
-- A small non-sensitive task, relevant constraints, and a sanitized error or result.
-
-A passing connection test is not proof that all operations work. Testing and generation use your provider account and may be billable. Never include keys, `.env` contents, private tasks, or sensitive logs in an issue, screenshot, fixture, or pull request.
+A passing connection test does not prove all operations work. Use non-sensitive tasks and sanitized errors. Never include keys, `.env` contents, private task data, or sensitive provider logs in issues, fixtures, screenshots, or pull requests.
 
 ## Report a bug
 
-Describe reproduction steps, expected and actual behavior, browser, and relevant viewport. State whether the content was curated, imported, or model-generated. A minimal exported JSON project is useful if it contains no private material.
+Include reproduction steps, expected and actual behavior, browser, relevant viewport, content origin, and generation mode. For a trial failure, include the public error code and request ID if available, without your session token or network identifiers. A minimal exported JSON project helps when it contains no private content.
 
 ## License
 
-Contributions are made under the project's [MIT license](LICENSE). Share only material you have the right to contribute.
+Contributions use the project's [MIT license](LICENSE). Share only material you have the right to contribute.

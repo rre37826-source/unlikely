@@ -1,7 +1,8 @@
 import { EXAMPLES } from './examples.mjs';
 import { text, validateGraph, validateProject, routeEdges, findShortestPath, routeToMarkdown, routeMatches } from './core.mjs';
-import { REPOSITORY_URL } from './config.mjs';
+import { REPOSITORY_URL, TRIAL_API_BASE_URL } from './config.mjs';
 import { normalizeConnection, testConnection, requestModel } from './model-client.mjs';
+import { createTrialClient, chooseProvider, trialMessage } from './trial-client.mjs';
 import { layoutGraph } from './layout.mjs';
 import { describeModelError } from './model-errors.mjs';
 
@@ -20,6 +21,9 @@ let briefSource = '';
 let localProvider = { configured: false, model: null };
 let provider = { ...localProvider, mode: 'local' };
 let browserConnection = null;
+let trialStorage;try{trialStorage=sessionStorage;}catch{}
+const trialClient=createTrialClient(TRIAL_API_BASE_URL,{storage:trialStorage});
+let trialState=trialClient.state;
 let connectionController = null;
 let pendingGenerate = false;
 let pendingExpansion = null;
@@ -48,6 +52,8 @@ const copy = {
   suggestion:['A SUGGESTION, YOUR DECISION','系统建议，由你决定'],bridgeTitle:['A possible connection','一条可能的连接'],acceptBridge:['Keep this connection','保留这条连接'],cancel:['Cancel','取消']
 };
 Object.assign(copy, {
+  quickExample:['Explore a complete example ↗','先体验一个完整案例 ↗'],
+  trialPrivacy:['Your task and relevant map content are sent to Moonshot for generation. Avoid sensitive information.','任务和相关网络内容将发送至 Moonshot 生成，请勿输入敏感信息。'],
   homeKicker:['AN OPEN WORKSPACE FOR UNEXPECTED IDEAS','一个让创意发生的开源工作台'],
   homeTitle:['One task.','一个任务，'],homeTitleAccent:['More than one way in.','不止一条思路。'],
   homeDescription:['Describe what you want to make. Explore unexpected connections, then choose a route to develop into an idea.','写下你想完成的事，发现不同事物之间的联系，再选出自己的创意主线。'],
@@ -61,13 +67,13 @@ Object.assign(copy, {
   writingExample:['Two siblings. Two memories of home.','两位手足，两份关于家的记忆'],writingOutcome:['A recipe becomes a story about leaving.','让一张配方，变成一个离家的故事。'],
   productExample:['Find your way back into interrupted work.','帮创作者找回被打断的思路'],productOutcome:['Compression becomes a context capsule.','从浓缩，联想到一个上下文胶囊。'],
   businessExample:['Make a quiet café worth stopping at.','让人愿意在清闲下午来咖啡店'],businessOutcome:['A small ritual becomes a service experiment.','让一个小仪式，变成可尝试的服务。'],
-  exampleDisclosure:['Curated examples · No API key needed · Not live generation','预设案例 · 无需 API key · 非实时生成'],
+  exampleDisclosure:['Complete examples · No sign-up · Curated, not live AI','完整案例 · 无需注册 · 预设内容，非实时生成'],
   stepTask:['Bring a task','带着任务来'],stepTaskDetail:['What do you want to make?','写作、产品、商业，或你手头的任何任务。'],
   stepExplore:['Explore the connections','看见不同的联系'],stepExploreDetail:['See the whole map. Ask why things connect.','先看全图，再点开节点和连接理由。'],
   stepRoute:['Choose your creative route','选出自己的主线'],stepRouteDetail:['Keep ideas, connect them, and shape a draft.','留下有感觉的节点，串成思路，整理成草案。'],
   guideExplore:['01 Explore ideas & relationships','01 看节点和连接理由'],guideChoose:['02 Add ideas to your route','02 将喜欢的节点加入路线'],guideShape:['03 Shape your draft ↗','03 整理成创意主线 ↗'],
   examplesHint:['Try one of two complete routes. Then make it your own.','先试一条完整路线，再按自己的想法修改。'],
-  connectionKicker:['YOUR MODEL, YOUR EXPLORATION','用自己的模型，探索自己的任务'],connectionTitle:['Connect your model','连接你的模型'],
+  connectionKicker:['ADVANCED OPTIONS','高级选项'],connectionTitle:['Use your own model','使用自己的模型'],
   connectionIntro:['Use an OpenAI-compatible API. Your provider handles the generation and its usage charges.','使用兼容 OpenAI 格式的 API。生成内容与调用费用由你选择的服务商处理。'],
   baseLabel:['API base URL','API 服务地址（Base URL）'],modelLabel:['Model name','模型名称'],
   connectionPrivacy:["Your key stays in this page’s memory and clears on refresh. Requests go directly to your chosen provider with the task and relevant map content. The key is not saved or included in exports.",'密钥只保留在本页内存，刷新后清除。请求会直接向你指定的服务商发送任务和相关网络内容，密钥仅用于认证，不会保存或写入导出文件。'],
@@ -103,7 +109,9 @@ function showHome(){
   if(requestController)return;stopTour();page='home';$('start-screen').hidden=false;$('workspace').hidden=true;$('resume-work').hidden=!hasSavedProject;updateLanguage();window.scrollTo({top:0,behavior:'instant'});
 }
 function showWorkspace(){page='workspace';$('start-screen').hidden=true;$('workspace').hidden=false;hasSavedProject=true;$('new-task').hidden=false;requestAnimationFrame(fitMap);window.scrollTo({top:0,behavior:'instant'});}
-function updateProvider(){provider=browserConnection?{configured:true,model:browserConnection.model,mode:'browser'}:{...localProvider,mode:'local'};updateLanguage();}
+function updateProvider(){provider=chooseProvider(browserConnection,localProvider,trialState);updateLanguage();}
+async function refreshTrial(){trialState=await trialClient.status();updateProvider();}
+function showTrialUnavailable(){const message=trialMessage(trialState,lang);notice(message);if(page==='home'){$('task-error').textContent=message;$('task-error').hidden=false;}void refreshTrial();}
 function updateLanguage(){
   document.documentElement.lang=lang;
   document.querySelectorAll('[data-i18n]').forEach(node=>node.textContent=T(node.dataset.i18n));
@@ -117,15 +125,22 @@ function updateLanguage(){
   $('task-title').textContent=label(project.title);$('task-description').textContent=label(project.task);$('task-description').hidden=label(project.title)===label(project.task);
   $('task-constraints').textContent=label(project.constraints);$('task-constraints').hidden=!label(project.constraints);
   $('new-task').hidden=page==='home';$('resume-work').hidden=!hasSavedProject;
-  $('connection-label').textContent=provider.configured?L('Model connected','模型已连接'):L('Connect a model','连接模型');
-  $('connection-button').classList.toggle('connected',provider.configured);
-  $('connection-button').title=provider.configured?provider.model:T('connectionTitle');
-  $('model-status').textContent=provider.configured?L(`Uses ${provider.model}. Your task goes to your configured provider.`,`使用 ${provider.model}，任务将发送到你配置的模型服务。`):L('Connect your model to generate a new map, or try a ready-made example.','生成自己的网络需要连接模型；也可以先体验下面的完整案例。');
-  $('expand-status').textContent=provider.configured?L('Generate new branches with your connected model.','使用已连接的模型生成新的分支。'):L('Connect a model to generate new branches.','连接模型后，可以生成新的分支。');
+  const ownModel=provider.configured&&provider.mode!=='trial';
+  $('connection-label').textContent=ownModel?L('Your model','自选模型'):L('Advanced','高级选项');
+  $('connection-button').classList.toggle('connected',ownModel);
+  $('connection-button').title=T('connectionTitle');
+  $('model-status').textContent=ownModel?L(`Uses ${provider.model}. Your provider handles usage charges.`,`使用 ${provider.model}，费用由你选择的服务商收取。`):trialMessage(trialState,lang);
+  $('trial-privacy').hidden=ownModel||!trialState.available;
+  $('example-quick-start').hidden=provider.configured;
+  $('generate-task').formNoValidate=!provider.configured;
+  $('generate-task').classList.toggle('secondary-button',!provider.configured);
+  $('generate-task').classList.toggle('primary-button',provider.configured);
+  $('generate-task').querySelector('[data-i18n]').textContent=provider.configured?T('generate'):L('Check online generation','查看在线生成状态');
+  $('expand-status').textContent=ownModel?L('Generate new branches with your connected model.','使用已连接的模型生成新的分支。'):trialState.available?L(`${trialState.remaining ?? trialState.dailyLimit} trial actions left today. Each expansion uses one.`,`今日还可使用 ${trialState.remaining ?? trialState.dailyLimit} 次。每次拓展使用 1 次额度。`):trialMessage(trialState,lang);
   $('expand-actions').querySelectorAll('button').forEach(button=>button.disabled=false);
   $('test-connection').textContent=connectionController?L('Testing the connection…','正在测试连接……'):pendingGenerate?L('Connect and generate my map','连接并开始生成'):pendingExpansion?L('Connect and expand this idea','连接并继续拓展'):T('testConnection');
-  $('active-connection').hidden=!provider.configured;
-  $('active-connection').textContent=provider.configured?L(`Active: ${provider.model}${provider.mode==='local'?' · local server':''}`,`当前：${provider.model}${provider.mode==='local'?' · 本地服务器':''}`):'';
+  $('active-connection').hidden=!ownModel;
+  $('active-connection').textContent=ownModel?L(`Active: ${provider.model}${provider.mode==='local'?' · local server':''}`,`当前：${provider.model}${provider.mode==='local'?' · 本地服务器':''}`):'';
   $('disconnect-model').hidden=!browserConnection;
   updateDestination();
 }
@@ -138,7 +153,7 @@ function openConnection(forGeneration=false,operation=null){
   if(browserConnection){$('model-base').value=browserConnection.baseUrl;$('model-name').value=browserConnection.model;}
   updateLanguage();$('connection-dialog').showModal();
 }
-function connectionError(error){return describeModelError(error,lang);}
+function connectionError(error){if(error.trial&&!error.code?.startsWith('TRIAL_')&&!['INPUT','ABORTED'].includes(error.code)&&error.name!=='AbortError')return L('The public trial could not finish this request. Your work is preserved. Please try again later, or explore a complete example.','公共试用这次未能完成生成，已有内容已保留。可以稍后重试，或先探索完整案例。');if(error.code==='TRIAL_DUPLICATE')return L('The previous request was already accepted. To avoid charging twice, it was not sent again. Start a fresh action if you want to try again.','上一次请求已受理，为避免重复调用，本次没有再次生成。如需重试，请再次操作。');return error.code?.startsWith('TRIAL_')?trialMessage({code:error.code},lang):describeModelError(error,lang);}
 async function connectModel(event){
   event.preventDefault();if(connectionController)return;
   let candidate;try{candidate=normalizeConnection({baseUrl:$('model-base').value.trim(),model:$('model-name').value.trim(),apiKey:$('model-key').value.trim()});}catch(error){$('connection-error').textContent=connectionError(error);$('connection-error').hidden=false;return;}
@@ -266,14 +281,15 @@ function renderAll(resetCamera=false){updateLanguage();renderExampleButtons();re
 function keepNode(){stopTour();if(project.route.includes(selectedNode))return;if(project.route.length>=40){notice(L('Keep a route to 40 ideas or fewer.','一条路线最多保留 40 个节点。'));return;}project.route.push(selectedNode);invalidateBrief();renderSelection();renderRoute();persist();notice(L('Added. Open “My route” to arrange your ideas.','已加入。打开“我的路线”，可以调整顺序、整理主线。'));}
 function currentCuratedRoute(){const example=EXAMPLES.find(e=>e.id===exampleId);return project.provenance==='curated'?example?.curatedRoutes.find(route=>routeMatches(project.route,route.nodeIds)):null;}
 async function synthesize(){
-  stopTour();if(project.route.length<2)return;
+  stopTour();if(project.route.length<2||requestController)return;
   const curated=currentCuratedRoute();
+  if(!curated&&!provider.configured){notice(L('Checking the public trial…','正在查看公共试用状态……'));await refreshTrial();}
   if(curated){brief={title:label(curated.title),body:label(curated.output),assumptions:label(curated.assumptions)};briefSource=L('CURATED EXAMPLE OUTCOME','精选案例的预设结果');}
   else if(provider.configured){
     try{brief=await api('/api/synthesize',{project:validateProject(project),language:lang},L('Finding the thread in your choices…','正在梳理你选出的主线……'));briefSource=L('MODEL DRAFT · YOUR SELECTED ROUTE','模型草案 · 基于你的选择');}catch(error){handleError(error);return;}
   }else{
     const connections=routeEdges(project.graph,project.route);
-    brief={title:L('A direction worth exploring','一条值得继续的思路'),body:project.route.map(id=>label(nodeById(id).label)).join(' → ')+'\n\n'+connections.filter(item=>item.edge).map(item=>label(item.edge.reason)).join('\n\n'),assumptions:connections.some(item=>!item.edge)?L('Some selected nodes have no direct connection yet. This is a route summary, not a generated proposal. Explore the gaps or connect a model to develop the idea.','部分节点之间尚无直接连接。这里整理的是你的探索记录；接入模型后可以进一步生成方案。'):L('This is a summary of your selected relationships, not a new AI-generated proposal. Connect a model to develop it, or try either curated path.','这是所选关系的整理，并非模型新生成的方案。接入模型可以继续发展，也可体验下方两条预设路线。')};briefSource=L('YOUR ROUTE · NO LIVE GENERATION','你的探索记录 · 非实时生成');
+    brief={title:L('A direction worth exploring','一条值得继续的思路'),body:project.route.map(id=>label(nodeById(id).label)).join(' → ')+'\n\n'+connections.filter(item=>item.edge).map(item=>label(item.edge.reason)).join('\n\n'),assumptions:connections.some(item=>!item.edge)?L('Some selected nodes have no direct connection yet. This is a route summary, not a generated proposal. Explore the gaps or try either complete example route.','部分节点之间尚无直接连接。这里整理的是你的探索记录；你可以继续调整，也可以体验完整案例路线。'):L('This is a summary of your selected relationships, not a new AI-generated proposal. Keep refining it, or try either curated path.','这是所选关系的整理，并非模型新生成的方案。可以继续调整，也可体验下方两条预设路线。')};briefSource=L('YOUR ROUTE · NO LIVE GENERATION','你的探索记录 · 非实时生成');
   }
   setTab('route');renderRoute();persist();$('idea-brief').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});
 }
@@ -289,6 +305,7 @@ function suggestBridge(){
 }
 async function api(url,body,message){
   stopTour();if(requestController)throw Object.assign(new Error('Busy'),{code:'INPUT'});
+  const usingTrial=!browserConnection&&provider.mode==='trial';
   const controller=new AbortController();requestController=controller;let timedOut=false;
   $('loading-label').textContent=message;$('request-time').textContent='';$('request-dialog').showModal();
   const started=Date.now();const ticker=setInterval(()=>{$('request-time').textContent=L(`${Math.floor((Date.now()-started)/1000)} seconds elapsed`,`${Math.floor((Date.now()-started)/1000)} 秒`);},1000);
@@ -296,21 +313,22 @@ async function api(url,body,message){
   try{
     let result;
     if(browserConnection){result=await requestModel(url.split('/').at(-1),body,browserConnection,{signal:controller.signal});}
+    else if(provider.mode==='trial'){result=await trialClient.request(url.split('/').at(-1),body,{signal:controller.signal});}
     else{
       const response=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal:controller.signal});
       try{result=await response.json();}catch(error){if(controller.signal.aborted||error.name==='AbortError')throw Object.assign(new Error('Stopped'),{code:'ABORTED'});throw Object.assign(new Error('Invalid response'),{code:'INVALID_RESPONSE'});}
       if(!response.ok)throw Object.assign(new Error('Provider request failed'),{code:result.code||'PROVIDER',httpStatus:result.httpStatus,providerDetails:result.providerDetails});
     }
     if(controller.signal.aborted)throw Object.assign(new Error('Stopped'),{code:'ABORTED'});return result;
-  }catch(error){if(timedOut)throw Object.assign(new Error('Timeout'),{code:'TIMEOUT'});throw error;}
-  finally{clearTimeout(timeout);clearInterval(ticker);if(requestController===controller)requestController=null;$('request-dialog').close();}
+  }catch(error){if(timedOut)throw Object.assign(new Error('Timeout'),{code:'TIMEOUT',trial:usingTrial});if(usingTrial)error.trial=true;throw error;}
+  finally{clearTimeout(timeout);clearInterval(ticker);if(requestController===controller)requestController=null;$('request-dialog').close();trialState=trialClient.state;updateProvider();}
 }
 function handleError(error){const message=connectionError(error);notice(message);if(page==='home'){$('task-error').textContent=message;$('task-error').hidden=false;}}
 async function generateTask(event){
   event?.preventDefault();if(requestController)return;
+  if(!provider.configured){showTrialUnavailable();return;}
   const task=$('task-input').value.trim(),seed=$('seed-input').value.trim(),constraints=$('constraints-input').value.trim();if(!task){$('task-input').focus();return;}
   $('task-error').hidden=true;
-  if(!provider.configured){openConnection(true);return;}
   try{
     const result=await api('/api/generate',{task,seed,constraints,language:lang},L('Finding different ways into your task…','正在为你的任务展开不同的可能性……'));
     const graph=validateGraph(result.graph);const seedLabel=graph.nodes.find(n=>n.id===graph.seedId).label;
@@ -319,7 +337,7 @@ async function generateTask(event){
   }catch(error){handleError(error);}
 }
 async function expand(operation){
-  stopTour();if(!provider.configured){openConnection(false,operation);return;}
+  stopTour();if(!provider.configured){showTrialUnavailable();return;}
   try{const result=await api('/api/expand',{project:validateProject(project),nodeId:selectedNode,operation,language:lang},L('Looking beyond this idea…','正在寻找这个节点之外的可能……'));project.graph=validateGraph(result.graph);project.provenance='model';exampleId=null;invalidateBrief();renderAll(true);persist();notice(L('New possibilities added. Your route is unchanged.','新的可能性已加入，你选定的路线仍然保留。'));}catch(error){handleError(error);}
 }
 function download(data,type,name){const url=URL.createObjectURL(new Blob([data],{type}));const a=el('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
@@ -410,3 +428,5 @@ document.addEventListener('keydown',event=>{if(event.key==='Escape')stopTour();}
 if(/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(REPOSITORY_URL)){$('github-link').href=REPOSITORY_URL;$('github-link').hidden=false;}
 restore();renderAll(true);showHome();
 if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') fetch('./api/status',{signal:AbortSignal.timeout(5000)}).then(response=>response.ok?response.json():null).then(status=>{if(status&&typeof status.configured==='boolean'){localProvider=status;updateProvider();}}).catch(()=>{});
+
+void refreshTrial();

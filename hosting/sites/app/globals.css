@@ -1,0 +1,42 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "../vendor/shadcn-tailwind-4.13.0.css";
+
+:root {
+  color-scheme: dark;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #142820;
+  color: #eff3e8;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 280px; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 3px solid #d1ed92; outline-offset: 5px; }
+.status-page { width: min(100% - 48px, 820px); margin: 0 auto; padding: 44px 0 32px; }
+.wordmark { display: inline-flex; gap: 14px; align-items: baseline; font-size: 28px; font-weight: 700; letter-spacing: -1.4px; }
+.wordmark span { font-size: 19px; color: #c6df94; }
+.status-card { margin: clamp(56px, 12vh, 124px) 0 60px; padding: clamp(26px, 6vw, 58px); border: 1px solid #506349; border-radius: 22px; background: #1b3026; }
+.eyebrow { margin: 0 0 40px; font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #b5c6a8; }
+.status-dot { display: block; width: 12px; height: 12px; border-radius: 50%; background: #c6c5a4; margin-bottom: 20px; }
+.status-available { background: #cdec8d; }
+.status-busy, .status-limit { background: #e5bd74; }
+h1 { margin: 0; max-width: 580px; font-size: clamp(30px, 5vw, 48px); font-weight: 500; line-height: 1.1; letter-spacing: -1.6px; }
+.detail { margin: 24px 0 0; max-width: 520px; color: #c6d3bf; font-size: 17px; line-height: 1.65; }
+.chinese { margin: 14px 0 0; max-width: 520px; color: #a8b99e; font-size: 14px; line-height: 1.85; }
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: 18px 26px; margin-top: 38px; }
+.return-link { display: inline-flex; align-items: center; justify-content: center; gap: 20px; min-height: 48px; padding: 12px 20px; border-radius: 8px; background: #d1ed92; color: #193026; font-size: 15px; font-weight: 700; }
+.return-link:hover { background: #ddf5a7; }
+button { padding: 12px 0; border: 0; color: #d2ddc9; background: transparent; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; font-size: 14px; }
+button:disabled { opacity: .5; cursor: wait; }
+.footer-note { color: #9bae91; font-size: 13px; line-height: 1.6; }
+@media (max-width: 420px) {
+  .status-page { width: min(100% - 32px, 820px); padding-top: 28px; }
+  .status-card { margin-top: 54px; border-radius: 16px; padding: 26px 22px; }
+  .eyebrow { margin-bottom: 30px; }
+  .actions { gap: 14px; }
+}

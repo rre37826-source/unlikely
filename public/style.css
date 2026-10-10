@@ -31,3 +31,6 @@
 @media(max-width:600px){.node{max-width:220px}.node.seed{max-width:none}}
 .mobile-details,.back-to-map{display:none}
 @media(max-width:900px){.mobile-details{display:block;position:absolute;left:16px;bottom:16px;background:var(--yellow);color:#222b10;padding:10px 14px;font-size:12px;font-weight:600;z-index:6;max-width:46%;min-height:38px}.back-to-map{display:block}.canvas-bottom .zoom-controls{top:auto;bottom:16px;right:16px}}
+
+/* Anonymous trial entry stays useful while the live service is unavailable. */
+#example-quick-start{margin-top:20px}.task-composer .start-generate.secondary-button{margin-top:10px;border-color:#4e5b43;color:#bcc9ae;background:transparent}.trial-privacy{font-size:10px;line-height:1.7;color:var(--muted);margin-top:8px}.connection-button:not(.connected) .connection-dot{display:none}

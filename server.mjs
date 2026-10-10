@@ -10,6 +10,7 @@ const STATIC = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']], ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/app.mjs', ['app.mjs', 'text/javascript; charset=utf-8']], ['/core.mjs', ['core.mjs', 'text/javascript; charset=utf-8']],
   ['/examples.mjs', ['examples.mjs', 'text/javascript; charset=utf-8']], ['/style.css', ['style.css', 'text/css; charset=utf-8']],
+  ['/trial-client.mjs', ['trial-client.mjs', 'text/javascript; charset=utf-8']],
   ['/config.mjs', ['config.mjs', 'text/javascript; charset=utf-8']],
   ['/layout.mjs', ['layout.mjs', 'text/javascript; charset=utf-8']],
   ['/model-errors.mjs', ['model-errors.mjs', 'text/javascript; charset=utf-8']],
