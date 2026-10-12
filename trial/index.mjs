@@ -1,6 +1,6 @@
 import { prepareModelRequest, validateModelResult } from '../public/model-protocol.mjs';
 import { DAILY_LIMIT, LIMITS, MODEL_BASE_URL, MODEL_NAME, TIMEOUT_MS, readConfig, reservation } from './limits.mjs';
-import { prepareTrialGeneration, normalizeTrialGeneration } from './protocol.mjs';
+import { prepareTrialGeneration, normalizeTrialGeneration, TRIAL_DIAGNOSTIC_CODES } from './protocol.mjs';
 import { admit, blocked, finish, isDuplicate, remaining, snapshot } from './ledger.mjs';
 
 const encoder = new TextEncoder();
@@ -24,6 +24,36 @@ class TrialError extends Error {
 function controlled(error) {
   const code = Object.hasOwn(MESSAGES, error?.code) ? error.code : 'PROVIDER';
   return { error: MESSAGES[code], code };
+}
+
+function logDiagnostic(onDiagnostic, action, diagnostic) {
+  const entry = Object.freeze({
+    event: 'trial_model_validation_failed', protocol: 'compact-v1', action,
+    diagnostic: TRIAL_DIAGNOSTIC_CODES.includes(diagnostic) ? diagnostic : 'shared_validation'
+  });
+  // Observability cannot change a response, reservation, or paid request count.
+  try { void Promise.resolve(onDiagnostic(entry)).catch(() => {}); } catch { /* Best effort only. */ }
+}
+
+function defaultDiagnostic(entry) { console.warn(entry); }
+
+// Called only after compact normalization and a failed shared validator. Inspect
+// structure deterministically; never infer a category from an error message.
+function graphDiagnostic(graph) {
+  const groups = new Map(graph.nodes.map(node => [node.id, node.cluster]));
+  const adjacency = new Map(graph.nodes.map(node => [node.id, []]));
+  for (const edge of graph.edges) {
+    adjacency.get(edge.source).push(edge.target);
+    adjacency.get(edge.target).push(edge.source);
+  }
+  const seen = new Set([graph.seedId]);
+  const queue = [graph.seedId];
+  for (let i = 0; i < queue.length; i++) {
+    for (const id of adjacency.get(queue[i])) if (!seen.has(id)) { seen.add(id); queue.push(id); }
+  }
+  if (seen.size !== graph.nodes.length) return 'graph_disconnected';
+  if (graph.edges.filter(edge => groups.get(edge.source) !== groups.get(edge.target)).length < 8) return 'graph_cross_cluster';
+  return 'shared_validation';
 }
 
 function response(body, status, origin, retryAfter) {
@@ -164,13 +194,25 @@ async function callProvider(action, payload, messages, config, fetchImpl, signal
   if (choice?.finish_reason !== 'stop' || typeof choice?.message?.content !== 'string') throw new TrialError('INVALID_RESPONSE', 502);
   let result;
   try { result = JSON.parse(choice.message.content); } catch { throw new TrialError('INVALID_RESPONSE', 502); }
-  if (action === 'expand' && (!Array.isArray(result?.delta?.nodes) || result.delta.nodes.length < 3 || result.delta.nodes.length > 5 || !Array.isArray(result.delta.edges) || result.delta.edges.length > 12 || (result.delta.clusters?.length || 0) > 2)) throw new TrialError('INVALID_GRAPH', 502);
+  if (action === 'expand' && (!Array.isArray(result?.delta?.nodes) || result.delta.nodes.length < 3 || result.delta.nodes.length > 5 || !Array.isArray(result.delta.edges) || result.delta.edges.length > 12 || (result.delta.clusters?.length || 0) > 2)) {
+    const error = new TrialError('INVALID_GRAPH', 502);
+    error.diagnostic = 'expand_shape';
+    throw error;
+  }
   checkSignal(signal);
-  return validateModelResult(action, payload, action === 'generate' ? { graph: normalizeTrialGeneration(result, payload.language || 'en') } : result);
+  const graph = action === 'generate' ? normalizeTrialGeneration(result, payload.language || 'en') : null;
+  try { return validateModelResult(action, payload, action === 'generate' ? { graph } : result); }
+  catch (error) {
+    if (error?.code === 'INVALID_GRAPH') {
+      error.diagnostic = 'shared_validation';
+      try { if (graph) error.diagnostic = graphDiagnostic(graph); } catch { /* Retain the fixed fallback. */ }
+    }
+    throw error;
+  }
 }
 
 /** Cloudflare/D1 adapter. No runtime DDL, persistence of prompts, or provider retries. */
-export async function handleTrialRequest(request, { env = {}, db, fetchImpl = fetch, now = Date.now } = {}) {
+export async function handleTrialRequest(request, { env = {}, db, fetchImpl = fetch, now = Date.now, onDiagnostic = defaultDiagnostic } = {}) {
   const url = new URL(request.url);
   const isStatusPath = url.pathname === '/api/trial/status';
   const isStatus = isStatusPath && request.method === 'GET';
@@ -199,6 +241,7 @@ export async function handleTrialRequest(request, { env = {}, db, fetchImpl = fe
   const timer = setTimeout(() => controller.abort('trial-timeout'), TIMEOUT_MS);
   const signal = controller.signal;
   let admittedId = null;
+  let admittedAction;
   let visitor;
   const remote = { definitive: false };
   let outcome = 'PROVIDER';
@@ -231,6 +274,7 @@ export async function handleTrialRequest(request, { env = {}, db, fetchImpl = fe
       return response({ ...controlled(denial), ...denial, trial: { remaining: remaining(state), dailyLimit: DAILY_LIMIT } }, duplicate ? 409 : 429, origin, denial.retryAfter);
     }
     admittedId = body.requestId;
+    admittedAction = body.action;
     const result = await callProvider(body.action, body.payload, messages, config, fetchImpl, signal, remote);
     const state = await storage(snapshot(ledger, visitor, now()));
     checkSignal(signal);
@@ -239,6 +283,7 @@ export async function handleTrialRequest(request, { env = {}, db, fetchImpl = fe
   } catch (error) {
     const safe = controlled(error);
     outcome = safe.code;
+    if (admittedAction && safe.code === 'INVALID_GRAPH') logDiagnostic(onDiagnostic, admittedAction, error.diagnostic);
     if (isStatus) return response({ available: false, reason: safe.code, dailyLimit: DAILY_LIMIT }, 200, origin);
     const status = error instanceof TrialError ? error.status : 502;
     let trial;

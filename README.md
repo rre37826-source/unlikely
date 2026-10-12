@@ -38,7 +38,7 @@ The hosted gateway is deployed and enabled, with operator credentials and a mont
 
 The default limits are three model operations per anonymous session **and per IP address per UTC day**, shared by generation, expansion, and synthesis; the tighter allowance wins. Global usage, concurrency, and monthly budget limits also apply. Curated examples remain free and do not consume this allowance.
 
-A real Kimi K2.6 result passed graph validation and was imported into the public frontend. A successful request through the updated public generation flow remains unverified: the test IP had already used its daily allowance. Real expansion and synthesis remain mock-tested only. See the [v0.3.1 verification record](docs/verification-v0.3.1.md).
+The live public generation flow has been verified with Kimi K2.6. This is one successful request; real expansion and synthesis remain unverified. See the [v0.3.2 verification record](docs/verification-v0.3.2.md) for the tested scope.
 
 While unavailable or out of quota, the app keeps your current work and offers examples or a retry where appropriate. It does not require an API-key form to continue. See [public-trial setup and limits](docs/public-trial.md) for quota rules and data handling.
 
@@ -50,7 +50,7 @@ Open the optional model settings and enter an API base URL, model name, and API 
 - Testing makes a model request; testing and subsequent generation, expansion, or synthesis may incur charges on **your provider account**, including reasoning charges where applicable.
 - Browser requests go directly to your chosen provider. If CORS blocks them, use the local server below.
 
-Advanced BYOK integrations have mock-based tests. The direct Kimi K2.6 check above does not verify browser BYOK, other providers, or real expansion and synthesis. A successful connection test alone does not prove all operations work.
+Advanced BYOK integrations have mock-based tests. The public generation check above does not verify browser BYOK, other providers, or real expansion and synthesis. A successful connection test alone does not prove all operations work.
 
 ## Run locally
 

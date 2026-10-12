@@ -1,6 +1,6 @@
 {
   "name": "unlikely-idea-explorer",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "type": "module",
   "description": "Turn a task into a map of possibilities. Choose your own creative path.",

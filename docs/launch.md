@@ -1,6 +1,6 @@
 # Launch materials
 
-Drafts for human review and publication. No external posts or growth results are claimed. **The limited public trial is enabled**, with no visitor account or API key required. The updated gateway is deployed; a real direct-provider result passed validation and frontend import. Successful generation through the updated public flow is unverified because the test IP's daily quota was already exhausted. Verify public links and refresh screenshots or recordings after interface changes.
+Drafts for human review and publication. No external posts or growth results are claimed. **The limited public trial is enabled**, with no visitor account or API key required. One real public generation flow has been verified; see the [verification record](verification-v0.3.2.md) for the tested scope. Verify public links and refresh screenshots or recordings after interface changes.
 
 ## Current positioning
 
@@ -8,7 +8,7 @@ Drafts for human review and publication. No external posts or growth results are
 
 Bring a task, explore unexpected connections, and choose the ideas worth developing. The limited public trial needs no account or API key. Three complete curated examples are also free to explore.
 
-中文：一个任务，不止一条思路。带着任务探索意外的联系，选出自己的主线。公共限额试用无需注册或填写 API key，也可以免费体验三个完整精选案例。
+中文：一个任务，不止一条思路。带着任务探索意外的联系，选出自己的主线。公共限额试用无需注册或填写 API key，也有三个完整精选案例可免费探索。
 
 ## A 20-second example walkthrough
 
@@ -32,7 +32,7 @@ What could lemon concentrate have to do with a short film, a product for interru
 
 I built Unlikely to explore those connections. Start with a task, see the full map, inspect why ideas connect, and choose the ones worth developing. A limited public trial is enabled without registration or your own API key. Three curated examples and six complete preset routes are free to explore, and you can export your route as Markdown, JSON, or an SVG card.
 
-The examples are authored, not live-generated. A real Kimi K2.6 map passed validation and was imported into the app. The updated public gateway is deployed, but its successful end-to-end generation is unverified because the test IP had exhausted its allowance. Real expansion and synthesis remain mock-tested only. Using your own compatible model is an optional advanced path, with charges on your own provider account.
+The examples are authored, not live-generated. A real public generation flow has been verified; see the [verification record](verification-v0.3.2.md) for its scope. Using your own compatible model is an optional advanced path, with charges on your own provider account.
 
 Try a route and tell me which connection surprised you—or felt forced. If you want to follow the project, a GitHub star is welcome.
 
@@ -46,7 +46,7 @@ Try a route and tell me which connection surprised you—or felt forced. If you 
 
 公共限额试用已开启，无需注册或填写自己的 API key。也可以免费体验写作、产品、商业三个精选案例和六条附完整结果的预设路线，自由选择主线，导出 Markdown、JSON 或 SVG 卡片。
 
-这些案例是人工编排的，不是实时生成。一份真实 Kimi K2.6 图谱已通过校验并成功导入应用。新版公共网关已部署，但测试 IP 的额度已用完，因此新版公共入口尚未完成成功生成验证；延展与整理目前仅通过 mock 测试。自带模型是可选高级方式，费用由自己的服务商账户承担。
+这些案例是人工编排的，不是实时生成。已完成一次真实公开网页生成，实测范围详见[验证记录](verification-v0.3.2.md)。自带模型是可选高级方式，费用由自己的服务商账户承担。
 
 欢迎试试，告诉我哪条联系带来新想法，哪条显得牵强。如果希望继续关注，也欢迎点一颗 star。
 
@@ -60,9 +60,9 @@ Try a route and tell me which connection surprised you—or felt forced. If you 
 
 ## Publication boundary
 
-Current copy may describe the public trial as enabled without registration or a visitor key. Each anonymous session and each IP has three shared model operations per UTC day, subject to global usage, concurrency, and monthly budget limits. The real direct-provider result and its frontend import are verified; successful generation through the updated public entry point is not. Do not claim unlimited access, a guaranteed result or cost cap, or all-provider compatibility.
+Current copy may describe the public trial as enabled without registration or a visitor key. Each anonymous session and each IP has three shared model operations per UTC day, subject to global usage, concurrency, and monthly budget limits. One real public generation flow is verified; this does not establish reliability across arbitrary tasks, real expansion or synthesis, or browser BYOK compatibility. Do not claim unlimited access, a guaranteed result or cost cap, or all-provider compatibility.
 
-中文边界：可宣传公共限额试用已开启、无需访客账号或密钥，但不能把“直连生成后导入”写成“新版公共入口已验证生成成功”。每个匿名会话和每个 IP 每个 UTC 日各三次模型操作，按较少余额执行，并受全局、并发和月度预算限制。
+中文边界：可说明公共限额试用已开启、无需访客账号或密钥，并已验证一次真实公开生成；不能由此推断任意任务都稳定成功，或真实延展、整理与浏览器 BYOK 已验证。每个匿名会话和每个 IP 每个 UTC 日各三次模型操作，按较少余额执行，并受全局、并发和月度预算限制。
 
 ## Observe the launch
 

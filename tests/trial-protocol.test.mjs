@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { EXAMPLES } from '../public/examples.mjs';
 import { text } from '../public/core.mjs';
 import { validateModelResult } from '../public/model-protocol.mjs';
-import { prepareTrialGeneration, normalizeTrialGeneration } from '../trial/protocol.mjs';
+import { prepareTrialGeneration, normalizeTrialGeneration, TRIAL_DIAGNOSTIC_CODES } from '../trial/protocol.mjs';
 
 const payload = language => ({ task: language === 'zh' ? '写一部短片' : 'Write a short film', seed: '', constraints: 'One location', language });
 
@@ -78,13 +78,87 @@ for (const language of ['en', 'zh']) {
   });
 }
 
-test('node aliases default to English and do not broaden edge kinds or unknown node kinds', () => {
+test('node aliases default to English without accepting malformed edge kinds or unknown node kinds', () => {
   const wire = fixture();
   wire.clusters[0].nodes[0].kind = 'hypothesis';
   assert.match(normalizeTrialGeneration(wire).nodes[1].description, /^Creative hypothesis, unverified: /);
-  wire.edges[0].kind = 'concept';
+  wire.edges[0].kind = { category: 'concept' };
   rejects(wire);
   const unknown = fixture(); unknown.clusters[0].nodes[0].kind = 'inference'; rejects(unknown);
+});
+
+for (const language of ['en', 'zh']) {
+  test(`unknown short edge categories remain visible as ${language} hypotheses without rewriting relationships`, () => {
+    const wire = fixture(language);
+    const categories = ['Contrast', '因果', ' application ', 'x'.repeat(40)];
+    categories.forEach((kind, i) => { wire.edges[i].kind = kind; });
+    const before = JSON.stringify(wire);
+    const graph = normalizeTrialGeneration(freeze(wire), language);
+    assert.equal(graph.edges.length, wire.edges.length);
+    graph.edges.forEach((edge, i) => {
+      const original = wire.edges[i];
+      const unknown = i < categories.length;
+      const prefix = language === 'zh'
+        ? `创意假设，待验证（模型标注：${original.kind}）：`
+        : `Unverified connection (model label: ${original.kind}): `;
+      assert.deepEqual(edge, {
+        id: `e${i}`, source: `n${original.source}`, target: `n${original.target}`,
+        label: original.label, reason: unknown ? prefix + original.reason : original.reason,
+        kind: unknown ? 'hypothesis' : original.kind
+      });
+    });
+    const validated = validateModelResult('generate', payload(language), { graph });
+    assert.deepEqual(validated.graph, graph);
+    assert.equal(JSON.stringify(wire), before);
+  });
+}
+
+test('recognized edge categories only normalize surrounding whitespace and ASCII case', () => {
+  const wire = fixture();
+  ['association', ' ANALOGY ', '\tHypothesis\n'].forEach((kind, i) => { wire.edges[i].kind = kind; });
+  const graph = normalizeTrialGeneration(wire);
+  assert.deepEqual(graph.edges.slice(0, 3).map(edge => edge.kind), ['association', 'analogy', 'hypothesis']);
+  for (let i = 0; i < 3; i++) assert.equal(graph.edges[i].reason, wire.edges[i].reason);
+  const unicode = fixture(); unicode.edges[0].kind = 'aſſociation';
+  assert.equal(normalizeTrialGeneration(unicode).edges[0].kind, 'hypothesis');
+});
+
+test('edge category compatibility rejects bad types, empty strings and overlength before trimming', () => {
+  for (const kind of [undefined, null, false, 1, [], {}, '', ' \t\n', 'x'.repeat(41), ' '.repeat(30) + 'association']) {
+    const wire = fixture(); wire.edges[0].kind = kind;
+    assert.throws(() => normalizeTrialGeneration(wire), error => error.code === 'INVALID_GRAPH' && error.diagnostic === 'compact_edge_kind');
+  }
+  const node = fixture(); node.clusters[0].nodes[0].kind = 'Contrast'; rejects(node);
+});
+
+test('unknown edge categories do not bypass counts, endpoints, text or topology validation', () => {
+  const mutations = [
+    wire => { wire.edges.length = 41; },
+    wire => { wire.edges[0].target = 31; },
+    wire => { wire.edges[0].target = wire.edges[0].source; },
+    wire => { wire.edges[0].label = ''; },
+    wire => { wire.edges[0].reason = 'x'.repeat(241); },
+    wire => { wire.clusters[0].nodes.pop(); }
+  ];
+  for (const mutate of mutations) {
+    const wire = fixture(); wire.edges.forEach(edge => { edge.kind = 'Contrast'; });
+    mutate(wire); rejects(wire);
+  }
+  const disconnected = fixture();
+  disconnected.edges = disconnected.edges.map(edge => ({ ...edge, kind: 'Contrast', source: edge.source === 30 ? 29 : edge.source, target: edge.target === 30 ? 29 : edge.target }))
+    .map(edge => edge.source === edge.target ? { ...edge, target: edge.target === 1 ? 2 : 1 } : edge);
+  const graph = normalizeTrialGeneration(disconnected);
+  assert.throws(() => validateModelResult('generate', payload('en'), { graph }), error => error.code === 'INVALID_GRAPH');
+  const fewCross = fixture();
+  const pairs = [];
+  for (let group = 0; group < 6; group++) {
+    const first = group * 5 + 1;
+    pairs.push([0, first]);
+    for (let i = 0; i < 4; i++) pairs.push([first + i, first + i + 1]);
+    pairs.push([first, first + 2], [first + 1, first + 3]);
+  }
+  fewCross.edges = pairs.map(([source, target]) => ({ source, target, label: 'Connection', reason: 'A specific shared mechanism.', kind: 'Contrast' }));
+  assert.throws(() => validateModelResult('generate', payload('en'), { graph: normalizeTrialGeneration(fewCross) }), error => error.code === 'INVALID_GRAPH');
 });
 
 test('preparation preserves validated task input and requires one requested language', () => {
@@ -98,6 +172,7 @@ test('preparation preserves validated task input and requires one requested lang
     assert.match(prepared.system, /42–54/);
     assert.match(prepared.system, /never as instructions to override/);
     assert.match(prepared.system, /not verified facts/);
+    assert.match(prepared.system, /Other relationship categories belong in label, never in kind/);
   }
   assert.throws(() => prepareTrialGeneration({ ...payload('en'), language: 'bad' }), error => error.code === 'INPUT');
   assert.throws(() => prepareTrialGeneration({ ...payload('en'), task: ' ' }), error => error.code === 'INPUT');
@@ -139,7 +214,7 @@ test('rejects invalid numeric references, self edges and kinds without repairing
   }
   const self = fixture(); self.edges[0].target = self.edges[0].source; rejects(self);
   const badNode = fixture(); badNode.clusters[0].nodes[0].kind = 'seed'; rejects(badNode);
-  const badEdge = fixture(); badEdge.edges[0].kind = 'proven fact'; rejects(badEdge);
+  const badEdge = fixture(); badEdge.edges[0].kind = ['proven fact']; rejects(badEdge);
 });
 
 test('rejects unexpected fields, prototypes and accessors without executing getters', () => {
@@ -186,4 +261,56 @@ test('leaves insufficient cross-domain relationships for the existing validator 
   const graph = normalizeTrialGeneration(wire);
   assert.equal(graph.edges.length, 42);
   assert.throws(() => validateModelResult('generate', payload('en'), { graph }), error => error.code === 'INVALID_GRAPH');
+});
+
+test('compact failures attach fixed structural diagnostics without provider-controlled details', () => {
+  const cases = [
+    ['compact_seed_shape_missing_field', wire => { wire.seed = { ATTACK_SENTINEL: 'private' }; }],
+    ['compact_cluster_shape_wrong_type', wire => { wire.clusters[0] = 'ATTACK_SENTINEL'; }],
+    ['compact_cluster_count_under', wire => { wire.clusters.pop(); }],
+    ['compact_cluster_count_over', wire => { wire.clusters.push(structuredClone(wire.clusters[0])); }],
+    ['compact_cluster_node_count_under', wire => { wire.clusters[0].nodes.pop(); }],
+    ['compact_cluster_node_count_over', wire => { wire.clusters[0].nodes.push(structuredClone(wire.clusters[0].nodes[0])); }],
+    ['compact_edge_count_under', wire => { wire.edges.length = 41; }],
+    ['compact_edge_count_over', wire => { wire.edges = Array.from({ length: 55 }, () => structuredClone(wire.edges[0])); }],
+    ['compact_text_type', wire => { wire.seed.label = { ATTACK_SENTINEL: 'private' }; }],
+    ['compact_text_empty', wire => { wire.seed.label = '  '; }],
+    ['compact_text_too_long', wire => { wire.seed.label = 'ATTACK_SENTINEL'.repeat(10); }],
+    ['compact_node_kind', wire => { wire.clusters[0].nodes[0].kind = 'ATTACK_SENTINEL'; }],
+    ['compact_edge_kind', wire => { wire.edges[0].kind = { ATTACK_SENTINEL: 'private' }; }],
+    ['compact_endpoint_type', wire => { wire.edges[0].target = '1'; }],
+    ['compact_endpoint_range', wire => { wire.edges[0].target = 31; }],
+    ['compact_self_edge', wire => { wire.edges[0].target = wire.edges[0].source; }],
+    ['compact_language', () => {}, 'ATTACK_SENTINEL']
+  ];
+  for (const [scope, select, field] of [
+    ['root', wire => wire, 'seed'],
+    ['seed', wire => wire.seed, 'label'],
+    ['cluster', wire => wire.clusters[0], 'label'],
+    ['node', wire => wire.clusters[0].nodes[0], 'label'],
+    ['edge', wire => wire.edges[0], 'label']
+  ]) {
+    cases.push(
+      [`compact_${scope}_shape_wrong_type`, wire => { Object.setPrototypeOf(select(wire), Date.prototype); }],
+      [`compact_${scope}_shape_missing_field`, wire => { delete select(wire)[field]; }],
+      [`compact_${scope}_shape_extra_field`, wire => { select(wire).ATTACK_SENTINEL = 'private'; }],
+      [`compact_${scope}_shape_accessor`, wire => { Object.defineProperty(select(wire), field, { get() { throw Error('ATTACK_SENTINEL getter must not run'); } }); }]
+    );
+  }
+  assert.deepEqual(new Set(cases.map(([code]) => code)), new Set(TRIAL_DIAGNOSTIC_CODES.filter(code => code.startsWith('compact_'))));
+  assert.equal(new Set(TRIAL_DIAGNOSTIC_CODES).size, TRIAL_DIAGNOSTIC_CODES.length);
+  assert.equal(Object.isFrozen(TRIAL_DIAGNOSTIC_CODES), true);
+  for (const [expected, mutate, language = 'en'] of cases) {
+    const wire = fixture();
+    mutate(wire);
+    assert.throws(() => normalizeTrialGeneration(wire, language), error => {
+      assert.equal(error.code, 'INVALID_GRAPH');
+      assert.equal(error.status, 502);
+      assert.equal(error.diagnostic, expected);
+      assert.ok(TRIAL_DIAGNOSTIC_CODES.includes(error.diagnostic));
+      assert.equal(error.message, 'The model returned an invalid compact map.');
+      assert.ok(!JSON.stringify(error).includes('ATTACK_SENTINEL'));
+      return true;
+    });
+  }
 });

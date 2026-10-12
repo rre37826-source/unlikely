@@ -271,6 +271,88 @@ test('invalid output and provider errors retain reservations without revealing r
   }
 });
 
+test('validation diagnostics separate wire, topology and shared failures while preserving HTTP and ledger outcomes', async t => {
+  const disconnected = structuredClone(compactGraph);
+  disconnected.edges = disconnected.edges.map(edge => ({ ...edge,
+    source: edge.source === 30 ? 29 : edge.source, target: edge.target === 30 ? 29 : edge.target
+  })).map(edge => edge.source === edge.target ? { ...edge, target: edge.target === 1 ? 2 : 1 } : edge);
+  const fewCross = structuredClone(compactGraph);
+  const pairs = [];
+  for (let group = 0; group < 6; group++) {
+    const first = group * 5 + 1;
+    pairs.push([0, first]);
+    for (let i = 0; i < 4; i++) pairs.push([first + i, first + i + 1]);
+    pairs.push([first, first + 2], [first + 1, first + 3]);
+  }
+  fewCross.edges = pairs.map(([source, target]) => ({ source, target, label: 'ATTACK_SENTINEL', reason: 'Private provider text', kind: 'analogy' }));
+  const badKind = structuredClone(compactGraph);
+  badKind.clusters[0].nodes[0].kind = `ATTACK_SENTINEL ${KEY} TASK_SENTINEL`;
+  const expandRequest = { action: 'expand', payload: { project, nodeId: graph.seedId, operation: 'deepen', language: 'zh' } };
+  const cases = [
+    ['compact_node_kind', badKind, {}],
+    ['graph_disconnected', disconnected, {}],
+    ['graph_cross_cluster', fewCross, {}],
+    ['expand_shape', { delta: { nodes: [], edges: [] } }, expandRequest],
+    ['shared_validation', { delta: { nodes: graph.nodes.slice(0, 3), edges: [] } }, expandRequest]
+  ];
+  for (const [diagnostic, result, params] of cases) {
+    const db = database(t);
+    const entries = [];
+    let calls = 0;
+    const ctx = context(db, () => { calls++; return completion(result); }, { onDiagnostic: entry => entries.push(entry) });
+    const res = await handleTrialRequest(request(1, params), ctx);
+    const body = await res.json();
+    const action = params.action || 'generate';
+    assert.equal(res.status, 502);
+    assert.deepEqual(body, { error: 'The model returned an invalid map.', code: 'INVALID_GRAPH', trial: { remaining: 2, dailyLimit: 3 } });
+    assert.deepEqual(entries, [{ event: 'trial_model_validation_failed', protocol: 'compact-v1', action, diagnostic }]);
+    const recorded = JSON.stringify({ entries, body });
+    for (const sensitive of [KEY, SECRET, SESSION, uuid(1), '203.0.113.1', 'TASK_SENTINEL', 'ATTACK_SENTINEL', 'Private provider text']) assert.ok(!recorded.includes(sensitive));
+    assert.equal(rows(db)[0].outcome, 'INVALID_GRAPH');
+    assert.equal(rows(db)[0].reserved_microyuan, reservation(action));
+    assert.equal(rows(db)[0].lease_until, NOW);
+    assert.equal(rows(db)[0].completed_at, NOW);
+    assert.equal((await handleTrialRequest(request(1, params), ctx)).status, 409);
+    assert.equal(entries.length, 1);
+    assert.equal(calls, 1);
+  }
+});
+
+test('default diagnostic logs only fixed metadata, and successful or transport failures do not emit it', async t => {
+  const entries = [];
+  t.mock.method(console, 'warn', (...args) => entries.push(args));
+  for (const [providerResult, expected] of [
+    [() => completion({ ATTACK_SENTINEL: KEY }), 502],
+    [() => completion(graph), 200],
+    [() => new Response('ATTACK_SENTINEL'), 502]
+  ]) {
+    const db = database(t);
+    assert.equal((await handleTrialRequest(request(1), context(db, providerResult))).status, expected);
+  }
+  assert.deepEqual(entries, [[{ event: 'trial_model_validation_failed', protocol: 'compact-v1', action: 'generate', diagnostic: 'compact_root_shape_missing_field' }]]);
+});
+
+test('throwing, rejecting or stalled diagnostic callbacks cannot change billing, response or retry count', async t => {
+  for (const onDiagnostic of [
+    () => { throw Error('ATTACK_SENTINEL'); },
+    () => Promise.reject(Error('ATTACK_SENTINEL')),
+    () => new Promise(() => {})
+  ]) {
+    const db = database(t);
+    let calls = 0;
+    const ctx = context(db, () => { calls++; return completion({ ATTACK_SENTINEL: KEY }); }, { onDiagnostic });
+    const res = await handleTrialRequest(request(1), ctx);
+    assert.equal(res.status, 502);
+    assert.deepEqual(await res.json(), { error: 'The model returned an invalid map.', code: 'INVALID_GRAPH', trial: { remaining: 2, dailyLimit: 3 } });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(rows(db)[0].outcome, 'INVALID_GRAPH');
+    assert.equal(rows(db)[0].lease_until, NOW);
+    assert.equal(rows(db)[0].reserved_microyuan, reservation('generate'));
+    assert.equal((await handleTrialRequest(request(1), ctx)).status, 409);
+    assert.equal(calls, 1);
+  }
+});
+
 test('cancellation and the 120s deadline cannot refund, retry, or shorten an uncertain lease', async t => {
   for (const kind of ['cancel', 'timeout']) {
     const db = database(t);

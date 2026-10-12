@@ -1,6 +1,6 @@
 # Public trial
 
-**Status: limited public trial enabled.** The updated gateway is deployed with `TRIAL_ENABLED=true`, operator credentials, and a configured monthly budget. Visitors do not need an account or their own API key. The current browser check returned `TRIAL_QUOTA` because the test IP had already used its three daily operations; successful generation through the updated public entry point is not verified. A direct Kimi K2.6 response did pass local graph validation and frontend import. See the [v0.3.1 verification record](verification-v0.3.1.md). Three curated examples remain free and do not consume trial allowance.
+**Status: limited public trial enabled; live generation verified once.** The gateway is deployed with `TRIAL_ENABLED=true`, operator credentials, and a configured monthly budget. Visitors do not need an account or their own API key. On 2026-10-12, a real public-webpage request generated a map that could be explored and added to a route. See the [v0.3.2 verification record](verification-v0.3.2.md) for the scope and limitations. Three curated examples remain free and do not consume trial allowance.
 
 ## Experience
 
@@ -105,7 +105,7 @@ Frontend project persistence remains separate: tasks and graphs may be saved in 
 
 ## Verification boundary
 
-The latest gateway fix was saved and deployed, and public trial is enabled. A browser refresh confirmed the quota-exhausted state for the test IP. No further generation was attempted and the quota was not bypassed. Direct-provider generation and frontend import are separate checks; they do not establish successful generation through the updated public flow. Real expansion, synthesis, and browser BYOK remain unverified.
+After two failed public-browser attempts on 2026-10-12, one request succeeded against the deployed compatibility fix. The returned map rendered in the public webpage, node and relationship details were usable, and a three-node route was assembled. This verifies one live generation flow, not reliability across arbitrary tasks or the accuracy of its suggestions. Real expansion, synthesis, and browser BYOK remain unverified. Diagnostics record fixed structural codes without task or graph content.
 
 Describe the trial as enabled and limited, and record the operations actually tested. Operator setup includes D1, an intentionally supplied server credential, quota/HMAC configuration, current price verification, an explicit monthly budget, and a provider-side spending limit where available. Mock tests, a healthy status endpoint, or a successful deployment alone are insufficient evidence of a successful real generation.
 

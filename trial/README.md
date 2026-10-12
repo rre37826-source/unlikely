@@ -4,9 +4,11 @@ This module is server-only. It performs no model requests by default. Automated
 tests use dummy keys, SQLite and mock HTTP responses. A real Kimi K2.6 response
 has passed normalization and graph validation, then been imported into the
 public frontend. The updated gateway is deployed and public trial is enabled.
-A successful request through the updated public flow remains unverified because
-the test IP's daily allowance was already exhausted.
-See the [v0.3.1 verification record](../docs/verification-v0.3.1.md).
+After two failed public-browser attempts on 2026-10-12, a real request succeeded
+against the deployed edge-category compatibility fix. The returned map rendered
+and supported inspection and route selection. This verifies one generation flow;
+real expansion, synthesis, and browser BYOK remain unverified.
+See the [v0.3.2 verification record](../docs/verification-v0.3.2.md).
 
 ## Host adapter
 
@@ -107,8 +109,19 @@ protocols.
 Two known node-kind aliases are accepted: `analogy` and `hypothesis` map to
 `concept`. Their meaning remains explicit in the description as `Analogy:` or
 `Creative hypothesis, unverified:` (or the corresponding Chinese prefix).
-Unknown node kinds still fail. Edge kinds and endpoints are unchanged; this
-normalization does not turn an uncertain claim into a verified fact.
+Unknown node kinds still fail. This normalization does not turn an uncertain
+claim into a verified fact.
+
+Edge categories are handled separately. Recognized `association`, `analogy`, and
+`hypothesis` values accept surrounding whitespace and ASCII case normalization.
+Any other nonblank string of at most 40 characters, measured before trimming,
+becomes `hypothesis`; its original category is retained visibly in the reason
+with an unverified-connection prefix. Non-string, blank, and overlength values
+still fail. Nodes, endpoints, counts, connectivity checks, and quotas are
+unchanged; no connection is added and no automatic model retry is made. The
+generation prompt adds only the instruction to put other relationship
+categories in `label`, not `kind`. SVG route exports mark hypothesis connections
+in both supported UI languages.
 
 Request and provider-response readers accumulate bytes in one fixed buffer of
 the applicable limit plus one overflow-detection byte. On workerd, BYOB
@@ -176,6 +189,12 @@ store prompts, graph contents, output, raw IP, session UUID, provider response
 or key. Retain rows to preserve budget and idempotency; any later cleanup policy
 must retain those guarantees. Hosting access logs and provider retention policies
 remain separate from this module. Do not log request bodies in the route adapter.
+
+Validation diagnostics contain only a fixed event name, protocol identifier,
+action, and allowlisted structural diagnostic code. They do not include task or
+graph content, raw provider output, credentials, IP addresses, or request/session
+identifiers. Diagnostic callback failures do not alter the response, reservation,
+or number of provider calls.
 
 Run `node --test tests/trial.test.mjs tests/trial-protocol.test.mjs` on Node with `node:sqlite` available
 (Node 22.13+ or current Node 24; earlier Node 22 builds require
