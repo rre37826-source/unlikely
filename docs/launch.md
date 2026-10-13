@@ -1,6 +1,16 @@
 # Launch materials
 
-**Drafts only: not sent or published.** The featured demo and the five-person comprehension test below have not been tested with participants. No user feedback, growth result, or popularity claim is implied.
+**First outreach published: 2026-10-13.** Two independently tailored submissions are public. Both are submissions awaiting editorial decisions; publication in either newsletter has not been confirmed. No participant feedback or growth result is claimed.
+
+| Channel | Published submission | Initial status |
+| --- | --- | --- |
+| 科技爱好者周刊 | [ruanyf/weekly #12321](https://github.com/ruanyf/weekly/issues/12321) | Submitted; not confirmed selected |
+| HelloGitHub | [HelloGitHub #3951](https://github.com/521xueweihan/HelloGitHub/issues/3951) | Submitted; not confirmed featured |
+| Open feedback | [Unlikely #1](https://github.com/rre37826-source/unlikely/issues/1) | Collecting voluntary first-use feedback |
+
+The account used was the project owner, `rre37826-source`. Both submissions link to the playable example, public source, and feedback entry. Community rules and duplicates were checked before posting. These posts invite useful feedback and do not request coordinated stars or votes.
+
+The reusable drafts below are not exact copies of the submitted posts; follow the links for the actual published text. **The moderated five-person test has not run.** Voluntary public comments will be tracked separately from that test.
 
 Featured route: **lemon concentrate → musical motifs, rests, and call-and-response → game reloads → the short-film premise *Ratio* /《比例》**.
 
@@ -60,7 +70,7 @@ Try changing one choice. Star the project to bookmark it, share a route with rea
 
 ## First five people: comprehension test
 
-**Not recruited, not sent, not run. The thresholds below are targets, not results.**
+**The public feedback invitation is live, but no moderated participants have been recruited and this test has not run. The thresholds below are targets, not results.**
 
 Recruit five people who have not seen the project: two people who write or make visual work, two who build or design products, and one who works on a business or service. At least three should use GitHub. Use three desktop sessions and two phone sessions. Participation is voluntary and unpaid; do not ask for a star or treat willingness to praise the project as success.
 
@@ -87,5 +97,5 @@ If at least two people hit the same obstacle, revise that wording or interaction
 - The featured route and its outcome are authored. The film is a premise, not a completed production; the music and game connections are creative analogies, not research findings.
 - Free, immediate exploration refers to curated content. Custom generation uses three shared model operations per anonymous session and per IP per UTC day, with additional global, concurrency, and monthly budget limits. BYOK is optional and may incur charges on the visitor's provider account.
 - One real public generation flow is verified in the [v0.3.2 record](verification-v0.3.2.md). This does not establish success for arbitrary tasks, real expansion or synthesis, or browser BYOK compatibility.
-- Community copy, invitations, and the test plan remain drafts until actually used. Record real dates, observations, and voluntary feedback; do not add invented quotes, stars, endorsements, or results.
+- The submission links at the top record actual distribution. Other drafts and the moderated test remain unexecuted. Record real dates, observations, and voluntary feedback; do not add invented quotes, stars, endorsements, or results.
 - Repository views and net new stars can be observed separately. They do not identify which visitor starred or prove that a particular post caused growth. Keep private traffic data out of public copy.

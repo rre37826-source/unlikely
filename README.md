@@ -34,6 +34,8 @@ Unlikely is an open-source workspace for exploring connections like these. It sh
 
 Missing relationships remain visible. Suggested bridges use existing connections and require your choice. The featured route has an authored outcome; other routes can be explored independently.
 
+**Trying it for the first time?** [Tell us what made sense or where you got stuck](https://github.com/rre37826-source/unlikely/issues/1). We are collecting the first five voluntary reports; no positive review or star is required.
+
 ## Writing, products, and business
 
 All three complete examples begin with **lemon concentrate**. Each includes a full map and two preset routes with authored outcomes.
