@@ -59,18 +59,18 @@ const CONCEPTS = [
     'An offered glass can stage an invitation. The recipient may accept, change, or decline it: belonging still involves a choice.',
     '递出一杯饮料可以构成一个邀请。对方可以接受、修改或拒绝；进入关系仍然包含选择。')),
 
-  node('motif', 'sound', t('A musical motif', '音乐动机'), t(
-    'A short musical idea can recur and be varied. Borrow that structure for a phrase, gesture, product interaction, or recurring event.',
-    '一个短小的音乐材料可以反复出现并发生变化。可以把这一结构借给台词、动作、产品交互或周期性活动。')),
-  node('rest', 'sound', t('A deliberate pause', '有意的停顿'), t(
-    'Silence can be composed as part of a musical phrase. In another medium, a pause can leave room for attention or a human decision.',
-    '静默可以作为乐句的一部分被组织。在其他媒介里，停顿也可以为注意力或人的决定留出空间。')),
+  node('motif', 'sound', t('Music: a recurring motif', '音乐：反复出现的动机'), t(
+    'Keep a short musical idea recognizable while varying its rhythm or reply. Borrow this pattern to compare versions of one intention, action, or experience.',
+    '让一小段音乐材料保持可辨认，同时改变节奏或回应。把这种结构借给一个意图、动作或体验，让不同版本可以被比较。')),
+  node('rest', 'sound', t('Music: a deliberate rest', '音乐：一次有意的休止'), t(
+    'Place a pause before the next response. As a creative analogy, timing can change what a repeated gesture invites; the other person still chooses how to respond.',
+    '在下一次回应之前安排停顿。作为创意类比，时机可以改变同一个动作发出的邀请；如何回应仍由对方选择。')),
   node('variation', 'sound', t('Variation, not replacement', '变奏，保留辨识度'), t(
     'Change one feature while keeping a recognizable idea. Ask what should stay stable so that alternatives can still be compared.',
     '改变一个特征，同时保留可辨认的原始材料。追问什么需要稳定，才能让不同版本仍然可以比较。')),
-  node('call_response', 'sound', t('Call and response', '呼应'), t(
-    'A musical phrase can be answered by another. As a creative analogy, an action can invite a visible reply without dictating its content.',
-    '一个乐句可以由另一个乐句回应。作为创意类比，一个动作也能邀请明确的回应，而不预先规定回应的内容。')),
+  node('call_response', 'sound', t('Music: call and response', '音乐：发问与回应'), t(
+    'One musical phrase invites another to answer. Borrow the exchange: hold the initial cue steady, then change who responds, when, or with what action.',
+    '一个乐句邀请另一个乐句回答。借用这种交换结构：保留最初的提示，再改变谁来回应、何时回应，或用什么动作回应。')),
 
   node('inventory', 'play', t('A limited inventory', '有限的道具栏'), t(
     'Games can make available resources visible. A limited set of objects or choices can become material for invention rather than merely a shortage.',
@@ -81,9 +81,9 @@ const CONCEPTS = [
   node('unlock', 'play', t('A new possibility', '打开一种可能'), t(
     'A game may reveal a new action after a condition is met. In a creative task, consider what changes when a person gains access or permission.',
     '游戏可能在满足条件后开放新动作。移到创作中，可以考察：一个人获得入口或许可后，局面会怎样改变？')),
-  node('replay', 'play', t('Try another path', '再走一条路'), t(
-    'Replaying from a known state lets a person try a different choice. Preserve the earlier version so alternatives remain inspectable.',
-    '从已知状态重新开始，可以尝试另一种选择。保留先前版本，让不同路径仍然可以被回看和比较。')),
+  node('replay', 'play', t('Game: reload and choose', '游戏：读档后重选'), t(
+    'Some games let players return to a saved state and choose again. Borrow this structure to compare decisions from a recognizable starting point; real actions need not be reversible.',
+    '一些游戏允许玩家返回存档，重新选择。借用这种结构，从可辨认的起点比较不同决定；现实中的行动并不因此可以撤销。')),
 
   node('threshold', 'city', t('A threshold', '一道门槛'), t(
     'An entrance marks a transition between places. As a metaphor, it can help design a clear moment of arrival, return, or departure.',
@@ -102,7 +102,7 @@ const CONCEPTS = [
 const COMMON_EDGES = [
   edge('seed', 'water', t('concentrating', '浓缩过程'), t('The seed evokes the removal of some water during concentration.', '种子让人联想到浓缩过程中去除部分水分的操作。'), 'association'),
   edge('seed', 'recipe', t('needs a proportion', '需要比例'), t('Mixing concentrate with water raises a practical question about proportions and preferences.', '把浓缩液与水混合，会遇到比例和口味偏好的实际问题。'), 'association'),
-  edge('seed', 'motif', t('a little that can recur', '少量材料，反复出现'), t('A concentrated flavor and a short musical motif are different things; both suggest building variations from a recognizable starting material.', '浓缩风味与音乐动机不是同一种东西；但都能启发我们从可辨认的少量材料发展出变化。')),
+  edge('seed', 'motif', t('same core, different variations', '同一份核心，不同变奏'), t('One concentrate can be mixed at different ratios; one motif can receive different treatments. Borrow the pattern of a recognizable core with changing variations, not a shared physical mechanism.', '同一份浓缩液可以调出不同比例，同一个音乐动机可以有不同处理。借用的是“保留可辨认的核心，再改变处理方式”的结构，不是相同的物理机制。')),
   edge('seed', 'bottle', t('a pocket-sized starting point', '装进口袋的起点'), t('Imagine a small bottle as a portable starting point for a larger experience.', '把小瓶想象成一个可以携带、随后展开为更大体验的起点。')),
 
   edge('water', 'remainder', t('notice what stays', '注意留下的部分'), t('Removing something prompts the creative question of what remains noticeable.', '拿走一部分东西，会引出“什么仍然明显”的创作问题。')),
@@ -117,7 +117,7 @@ const COMMON_EDGES = [
   edge('gesture', 'private_code', t('a gesture acquires a meaning', '动作获得特殊含义'), t('A repeated gesture can be written as a shared reference between particular characters or participants.', '可以把重复动作设计成某些角色或参与者之间的共同暗号。')),
   edge('private_code', 'welcome', t('share the meaning', '把含义分享出去'), t('An inside reference can become an invitation when someone chooses to explain it.', '当一个人愿意解释时，内部暗号也可以变成邀请别人加入的方式。')),
 
-  edge('motif', 'rest', t('give the phrase room', '给材料留出空白'), t('Treat the spaces around a repeated element as part of its composition.', '把反复出现的材料周围的空白，也纳入组织方式。')),
+  edge('motif', 'rest', t('keep the phrase, move the pause', '保留乐句，改变停顿'), t('Hold the repeated phrase steady and vary the pause before its reply. Timing becomes a variable to explore in a scene, interaction, or recurring service.', '保留反复出现的乐句，改变回应前的停顿。这样，时机就成为场景、交互或周期性服务中可以尝试改变的变量。')),
   edge('rest', 'variation', t('change the timing', '改变出现的时机'), t('Varying the placement of a pause is one possible way to alter how a repeated phrase is experienced.', '改变停顿的位置，是改变重复材料呈现效果的一种创作办法。')),
   edge('variation', 'call_response', t('a variation can answer', '变化也可以构成回答'), t('An altered repetition can be designed as a response to what came before.', '一次发生改变的重复，可以被设计成对前一次的回应。')),
 
@@ -141,7 +141,7 @@ const COMMON_EDGES = [
   edge('motif', 'inventory', t('few elements, many arrangements', '少量元素，多种安排'), t('A small set of musical material suggests exploring many arrangements of a limited set of objects.', '少量音乐材料的组织方式，可以启发我们探索有限物件的多种安排。')),
   edge('rest', 'rule', t('a rule that permits a pause', '允许停顿的规则'), t('Treat waiting or not acting as an available move rather than forcing an immediate response.', '把等待或暂不行动也设计成允许的选择，而不是要求立即回应。')),
   edge('variation', 'replay', t('compare another version', '比较另一个版本'), t('A recognizable variation and a replayed choice both invite comparison with a preserved earlier version.', '可辨认的变奏与重新尝试的选择，都邀请人将它与保留着的先前版本比较。')),
-  edge('call_response', 'replay', t('answer differently this time', '这一次，换一种回答'), t('Repeating an invitation creates a creative opportunity for a different answer.', '让邀请再次出现，可以创造一次给出不同回答的机会。')),
+  edge('call_response', 'replay', t('same prompt, another choice', '同一提示，重新选择'), t('Call and response allows different replies to one cue. A game reload revisits a state to choose again. Borrow that comparison structure; a later visit cannot literally undo an earlier one.', '音乐呼应允许同一提示得到不同回应；游戏读档让人返回某个状态重新选择。借用这种比较结构，后一次参与并不会真的撤销前一次经历。')),
   edge('rule', 'meeting', t('coordinate a small encounter', '约定一次小小的相遇'), t('A time, capacity, or participation rule could make an encounter at a shared place easier to understand.', '一个关于时间、容量或参与方式的规则，可以让共同地点中的一次相遇更容易被理解。')),
   edge('replay', 'threshold', t('a doorway back', '返回的入口'), t('A replay point can be imagined as an entrance back into an earlier state, with the option to choose a new path.', '可以把重新开始点想象成回到先前状态的入口，并保留改走另一条路的选择。')),
   edge('sign', 'context', t('information at the point of need', '在需要的位置给出信息'), t('A wayfinding sign suggests giving the relevant context where someone must make a decision.', '路标可以启发我们：在需要作决定的位置，提供此刻相关的背景信息。')),
@@ -159,29 +159,29 @@ const SPECS = [
       reduction: [t('The failed remake', '复原失败'), t('The siblings try to recreate a familiar drink. Each attempt makes their disagreement more visible; an exact recovered taste is never required.', '两人尝试复原熟悉的饮料。每次尝试都让分歧更明显；故事不需要出现一种被证明准确复原的口味。')],
       signal: [t('The smudged ratio', '模糊的比例'), t('A partly erased dilution note gives the conflict a visible object. Each sibling supplies a different missing number and a different memory.', '被擦掉一部分的配比说明，让冲突有了看得见的载体。两人为同一个缺口补上不同数字，也补上不同记忆。')],
       ritual: [t('Keep both glasses', '两杯都留下'), t('The ending changes the ritual: instead of correcting one another, the siblings label and keep two versions of the family drink.', '结尾改变原有仪式：两人不再纠正对方，而是给两种家庭饮料各写一张标签，都留下。')],
-      sound: [t('One line, three answers', '同一句话，三次回答'), t('Repeat “How much water?” as a practical question, an accusation, then an invitation. The pours and pauses make the change audible.', '把“要加多少水？”分别写成询问、指责和邀请。倒水声与停顿，让三次变化可以被听见。')],
+      sound: [t('Ratio: three matched shots', '《比例》：三次匹配构图'), t('Ask “How much water?” in three matched shots. Change who holds the jug; finally place it at the center so each sibling mixes a glass. Labels read 1:2 and 1:5, concentrate to water.', '三次匹配构图，都问“加多少水？”。改变谁掌水壶，最后把水壶放到桌中央，由两人各自调配。两杯分别贴上浓缩液与水的比例：1∶2、1∶5。')],
       play: [t('The last-spoon rule', '最后一勺规则'), t('With one spoon of concentrate left, they agree that each may add water once. A tiny invented rule makes control and compromise visible.', '只剩一勺浓缩液时，两人约定每人只能加一次水。一个临时发明的小规则，让控制与妥协变得可见。')],
       city: [t('A glass at the threshold', '门槛上的杯子'), t('Use the kitchen doorway as the final choice: one sibling is ready to leave; the other places a second glass within reach without asking them to stay.', '把厨房门口作为最后一个选择：一个人准备离开，另一个把第二杯放到对方够得到的位置，却没有开口挽留。')],
     },
     extraEdges: [
       edge('recipe', 'app_ritual', t('allow two recipes to coexist', '允许两种配方并存'), t('For this short film, conflicting recipes could resolve in coexistence rather than a correct answer.', '在这部短片里，配方分歧可以通过并存得到回应，而不是通过找出唯一正确答案。'), 'hypothesis'),
-      edge('rest', 'call_response', t('let the silence answer first', '先让沉默回答'), t('A pause before the reply could turn the same practical question into a moment of hesitation.', '回答前的一次停顿，可以让同一个实际问题显露犹豫。'), 'hypothesis'),
-      edge('replay', 'app_sound', t('repeat the line with changed intent', '重复台词，改变意图'), t('Three passes through one question could reveal a relationship changing without an explanatory speech.', '三次经过同一个问题，可以让关系变化显现，而不依赖解释性的独白。'), 'hypothesis'),
+      edge('rest', 'call_response', t('pause before taking control', '接管之前，停顿一下'), t('In this scene, a pause after “How much water?” leaves the next action open: give an order, take the jug, or let the other person choose.', '在这个场景里，“加多少水？”之后的停顿，为下一步动作留出选择：给出指令、拿过水壶，或让对方自己决定。'), 'hypothesis'),
+      edge('replay', 'app_sound', t('match the setup, change the decision', '匹配起点，改变决定'), t('Borrow a game reload as a match-cut structure: revisit the same kitchen framing, then change who controls the jug. The third version leaves room for two different ratios.', '把游戏读档借成匹配剪辑的结构：回到同一个厨房构图，再改变谁掌水壶。第三个版本为两种不同比例都留下位置。'), 'hypothesis'),
     ],
     curatedRoutes: [
+      {
+        id: 'writing-three-answers',
+        title: t('Ratio: one question, three choices', '《比例》：同一个问题，三次选择'),
+        nodeIds: ['seed', 'motif', 'rest', 'call_response', 'replay', 'app_sound'],
+        output: t('Ratio — a curated short-film concept. Two adult siblings pack their old kitchen. Each passage opens with the same framing: concentrate, glasses, jug, hands. “How much water?”\n\n1. One sibling holds the jug, says “One to two,” and blocks the other hand.\n2. Match the framing. The other sibling takes the jug; grabbing and correcting turn the question into “Who decides?”\n3. Ask again. A pause. The jug moves to the table center; each sibling mixes a glass. Final labels read concentrate:water — 1:2 and 1:5.\n\nBorrow repetition and variation from a musical motif, and different choices from a game reload.', '两个成年手足清空旧厨房。三幕都从同一瓶浓缩液、杯子、水壶和手的匹配构图开始，每次都问：“加多少水？”\n\n① 一人握着水壶说“一比二”，挡住对方想改变配比的手。\n② 同一构图再次出现，另一人接管水壶。争抢与纠正，让问题变成“谁说了算”。\n③ 再问一次。停顿后，水壶被放到桌中央，两人各自调配。最后，两杯并排，分别贴着“浓缩液∶水——1∶2”和“1∶5”。\n\n借音乐动机组织重复与变奏，借游戏读档比较同一起点的不同选择。'),
+        assumptions: t('A curated creative example using analogies with music and games. Two actors, one kitchen, no visual effects. Test-shoot the scene to see whether the changing relationship is clear.', '精选创作示例，音乐与游戏之间为创意类比。两位演员、一间厨房、无特效；可试拍检查关系转变是否可读。'),
+      },
       {
         id: 'writing-two-recipes',
         title: t('An imperfect recipe becomes two valid memories', '不完整的配方，走向两份不同的记忆'),
         nodeIds: ['seed', 'water', 'compression', 'omission', 'recipe', 'app_ritual'],
         output: t('Short-film premise: while packing their old kitchen, two adult siblings find a bottle of lemon concentrate and a smudged dilution note. Each insists their version tastes like home. Three attempts gradually reveal that they remember different roles within the same family. In the final minute, they stop trying to correct the drink: they label two glasses differently and sit down with both. The bottle, handwritten note, pouring, and pauses carry the scene.', '短片命题：清空旧厨房时，两个成年手足找到一瓶柠檬浓缩液和一张模糊的配比说明。两人都坚持自己调出的味道才像家。三次尝试逐渐显露：他们记得的，是同一家庭里不同的位置。最后一分钟，两人停止纠正味道，给两杯饮料写上不同标签，端着各自的一杯坐下。整场戏由瓶子、手写纸条、倒水和停顿推进。'),
         assumptions: t('A proposed fictional structure. Test whether the siblings’ different memories become clear through action; neither memory needs to be declared the objective truth. The recipe is a dramatic device, not evidence about memory science.', '这是待发展的虚构结构。需要验证：两份记忆的差异能否通过动作被看懂；不必判定哪份记忆才是客观真相。配方是戏剧装置，不构成关于记忆科学的论断。'),
-      },
-      {
-        id: 'writing-three-answers',
-        title: t('The same question changes its meaning', '让同一个问题，逐次改变含义'),
-        nodeIds: ['seed', 'motif', 'rest', 'call_response', 'replay', 'app_sound'],
-        output: t('Scene structure: “How much water?” occurs three times. First, one sibling gives an exact instruction while the other packs. Second, an overfilled glass and a long pause turn the question into a dispute about who always decided things. Third, beside the doorway, the question is asked with an empty glass held out; this time the answer is “You choose.” Repeat the same framing and vary the response, pour, and silence. The change is from control to permission.', '场景结构：“要加多少水？”出现三次。第一次，一个人给出准确指令，另一个继续收箱子。第二次，一杯加过头的饮料和一段停顿，让问题变成“过去总是谁说了算”的争执。第三次，在门边，有人递出空杯，再问一次；这次回答是“你来定”。重复同一个构图，改变回应、倒水和沉默。关系从控制走向允许。'),
-        assumptions: t('A performance and editing hypothesis. Read the scene aloud with two people and test whether each repetition feels different without added explanation. Emotional clarity matters more than obeying a rigid three-beat formula.', '这是关于表演和剪辑的假设。用两人对读验证：每次重复是否无需补充解释，就已经产生不同意味。情绪是否清楚，比机械遵守“三次”形式更重要。'),
       },
     ],
   },
@@ -281,8 +281,8 @@ export const EXAMPLES = SPECS.map(({ applications, extraEdges, ...spec }) => {
       clusters: CLUSTERS.map(({ id, label }) => ({ id, label: { ...label } })),
       nodes: [
         node('seed', 'reduction', { ...spec.seed }, t(
-          'A familiar object with several ways in: concentration, a recipe, a repeated gesture, and a container of possibilities. Every route below is a curated creative example.',
-          '一个熟悉的物件，有浓缩、配方、重复动作和容器等多种入口。这里的每条路线都是精选创意示例。'), 'seed'),
+          'A familiar object with several ways in: concentration, a recipe, a repeated gesture, and a container of possibilities. Every route is an authored creative example, not live model output.',
+          '一个熟悉的物件，有浓缩、配方、重复动作和容器等多种入口。这里的每条路线都是人工编排的精选创意示例，并非实时模型输出。'), 'seed'),
         ...CONCEPTS.map((n) => ({ ...n, label: { ...n.label }, description: { ...n.description } })),
         ...applicationNodes,
       ],

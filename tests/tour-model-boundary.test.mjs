@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { EXAMPLES } from '../public/examples.mjs';
 import { text, validateGraph, validateProject, routeMatches, routeEdges } from '../public/core.mjs';
+import { createExamplePreview } from '../public/example-preview.mjs';
 
 // Execute the actual UI functions. Only the DOM, clock and model transport are replaced.
 // This deliberately catches changes to app.mjs instead of testing a duplicate implementation.
@@ -15,12 +16,14 @@ function sourceBetween(start, end) {
   return appSource.slice(from, to);
 }
 const functions = [
+  sourceBetween('function keepNode(){', 'function currentCuratedRoute(){'),
   sourceBetween('function currentCuratedRoute(){', 'async function synthesize(){'),
   sourceBetween('async function synthesize(){', 'function suggestBridge(){'),
   sourceBetween('async function api(url,body,message){', 'function handleError('),
   sourceBetween('async function expand(operation){', 'function download('),
   sourceBetween('function stopTour(){', 'function tourCaption('),
-  sourceBetween('function runTour(){', "$('language').onclick")
+  sourceBetween('function runTour(){', "$('language').onclick"),
+  sourceBetween("document.addEventListener('click',", 'const canvas=')
 ].join('\n');
 
 function harness() {
@@ -28,6 +31,7 @@ function harness() {
   const timeouts = new Map();
   const calls = [];
   const persisted = [];
+  const listeners = new Map();
   let now = 0;
   let nextTimer = 1;
   const dom = id => {
@@ -43,9 +47,11 @@ function harness() {
     EXAMPLES, validateGraph, validateProject, routeMatches, routeEdges, AbortController,
     lang: 'en', exampleId: 'writing', selectedNode: 'seed', selectedEdge: null,
     project: null, brief: null, briefSource: '', tourTimers: [], requestController: null,
+    examplePreview: createExamplePreview(), hasSavedProject: false, clearExampleHash() {},
     browserConnection: { model: 'ui-regression-fixture' }, provider: { configured: true },
     trialClient: {state: {available:false}}, trialState: {available:false}, updateProvider() {},
     $: dom, L: en => en, label: value => text(value, 'en'),
+    document: { addEventListener: (name, fn) => listeners.set(name, fn) },
     Date: { now: () => now }, matchMedia: () => ({ matches: true }),
     setTimeout: (fn, delay) => later(fn, delay), clearTimeout: id => timeouts.delete(id),
     setInterval: (fn, delay) => later(fn, delay, delay), clearInterval: id => timeouts.delete(id),
@@ -56,6 +62,7 @@ function harness() {
     handleError(error) { throw error; },
     setExample(id) {
       const example = EXAMPLES.find(item => item.id === id);
+      context.examplePreview.begin({project:context.project});
       context.exampleId = id;
       context.project = validateProject({ ...example, version: 1, route: [example.graph.seedId], provenance: 'curated' });
       context.selectedNode = context.project.graph.seedId;
@@ -75,7 +82,7 @@ function harness() {
   vm.createContext(context);
   vm.runInContext(functions, context, { filename: 'actual-app-tour-functions.mjs' });
   return {
-    context, calls, persisted,
+    context, calls, persisted, listeners,
     async advance(milliseconds) {
       const target = now + milliseconds;
       while (true) {
@@ -97,7 +104,7 @@ function harness() {
 test('a complete curated tour makes zero model requests even when a model is connected', async () => {
   const app = harness();
   app.context.runTour();
-  await app.advance(22_000);
+  await app.advance(11_500);
   const route = EXAMPLES.find(example => example.id === 'writing').curatedRoutes[0];
   assert.deepEqual(app.calls, []);
   assert.deepEqual([...app.context.project.route], route.nodeIds);
@@ -105,6 +112,9 @@ test('a complete curated tour makes zero model requests even when a model is con
   assert.equal(app.context.brief.title, route.title.en);
   assert.equal(app.context.brief.body, route.output.en);
   assert.equal(app.context.briefSource, 'CURATED EXAMPLE OUTCOME');
+  assert.equal(app.context.examplePreview.active, true);
+  await app.advance(3_500);
+  assert.equal(app.context.tourTimers.length, 0);
 });
 
 test('expanding during the tour cancels its later steps and never automatically synthesizes or rewrites the route', async () => {
@@ -116,6 +126,7 @@ test('expanding during the tour cancels its later steps and never automatically 
   await app.context.expand('analogy');
   assert.equal(app.context.project.graph.nodes.length, 32);
   assert.equal(app.context.project.provenance, 'model');
+  assert.equal(app.context.examplePreview.active, false, 'Explicit model work becomes the saved workspace.');
   assert.deepEqual([...app.context.project.route], routeBeforeExpansion);
   await app.advance(30_000);
   assert.deepEqual(app.calls.map(call => call.operation), ['expand']);
@@ -124,4 +135,24 @@ test('expanding during the tour cancels its later steps and never automatically 
   assert.ok(app.context.project.graph.nodes.some(node => node.id === 'regression-new-node'));
   assert.equal(app.context.requestController, null);
   assert.equal(app.context.tourTimers.length, 0);
+});
+
+test('choosing a route node or another button stops the tour before it can replace a user choice', async () => {
+  for (const interaction of ['keep-node', 'button']) {
+    const app = harness();
+    app.context.runTour();
+    await app.advance(4_000);
+    if (interaction === 'keep-node') {
+      app.context.selectedNode = EXAMPLES[0].curatedRoutes[0].nodeIds.at(-1);
+      app.context.keepNode();
+    } else app.listeners.get('click')({ target: { closest: selector => selector === 'button' ? {} : null } });
+    const selected = app.context.selectedNode;
+    const route = [...app.context.project.route];
+    await app.advance(20_000);
+    assert.equal(app.context.selectedNode, selected);
+    assert.deepEqual([...app.context.project.route], route);
+    assert.equal(app.context.brief, null);
+    assert.equal(app.context.tourTimers.length, 0);
+    assert.deepEqual(app.calls, []);
+  }
 });

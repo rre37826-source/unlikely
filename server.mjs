@@ -9,6 +9,8 @@ const LIMIT = 256 * 1024;
 const STATIC = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']], ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/app.mjs', ['app.mjs', 'text/javascript; charset=utf-8']], ['/core.mjs', ['core.mjs', 'text/javascript; charset=utf-8']],
+  ['/featured-copy.mjs', ['featured-copy.mjs', 'text/javascript; charset=utf-8']],
+  ['/example-preview.mjs', ['example-preview.mjs', 'text/javascript; charset=utf-8']],
   ['/examples.mjs', ['examples.mjs', 'text/javascript; charset=utf-8']], ['/style.css', ['style.css', 'text/css; charset=utf-8']],
   ['/trial-client.mjs', ['trial-client.mjs', 'text/javascript; charset=utf-8']],
   ['/config.mjs', ['config.mjs', 'text/javascript; charset=utf-8']],

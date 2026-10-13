@@ -5,6 +5,8 @@ import { normalizeConnection, testConnection, requestModel } from './model-clien
 import { createTrialClient, chooseProvider, trialMessage } from './trial-client.mjs';
 import { layoutGraph } from './layout.mjs';
 import { describeModelError } from './model-errors.mjs';
+import { createExamplePreview, exampleFromHash, exampleShareUrl } from './example-preview.mjs';
+import { FEATURED_COPY } from './featured-copy.mjs';
 
 const $ = id => document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
@@ -39,9 +41,10 @@ let noticeTimer;
 let tourTimers = [];
 let pendingBridge = null;
 let persistenceAvailable = true;
+const examplePreview = createExamplePreview();
 
 const copy = {
-  tagline:['A map of possibilities','把可能性展开'],watch:['20-second tour','20 秒看懂'],newTask:['Your own task','输入你的任务'],
+  tagline:['A map of possibilities','把可能性展开'],watch:['15-second tour','15 秒看懂'],newTask:['Your own task','输入你的任务'],
   canvasHint:['Follow your curiosity. Every line has a reason.','沿着好奇心探索，每条连接都有理由。'],association:['Association','关联'],analogy:['Analogy / hypothesis','类比 / 假设'],fit:['Fit map','查看全图'],
   tryPath:['TAKE A DIFFERENT PATH','从另一条路出发'],examplesHint:['Two starting points. Your choices make the difference.','两个起点，往不同的方向走。'],inspect:['Explore','探索关联'],myRoute:['My route','我的路线'],
   connectedIdeas:['CONNECTED IDEAS','与它相连'],keepExploring:['KEEP EXPLORING','继续探索'],deepen:['Go deeper','向下深挖'],goFurther:['Find a distant analogy','寻找远处的类比'],invert:['Reverse it','反过来想'],
@@ -83,6 +86,7 @@ Object.assign(copy, {
   localGuide:['Read the local setup guide ↗','查看本地运行方法 ↗'],
   requestHint:['Building a map can take a minute or two. Your current work stays safe until the result is ready.','生成完整网络可能需要一两分钟。结果准备好之前，你原来的探索会保留。'],newTask:['New task','新任务']
 });
+Object.assign(copy, FEATURED_COPY);
 const L = (en,zh) => lang === 'zh' ? zh : en;
 const T = key => (copy[key] || [key,key])[lang === 'zh' ? 1 : 0];
 const label = value => text(value,lang);
@@ -93,22 +97,62 @@ const svgEl = (tag,attrs={}) => {const element=document.createElementNS(NS,tag);
 
 function localStorageSafe(key){try{return localStorage.getItem(key);}catch{return null;}}
 function fromExample(example){return validateProject({version:1,title:example.title,task:example.task,seed:example.seed,constraints:example.constraints,graph:example.graph,route:[example.graph.seedId],provenance:'curated'});}
-function persist(){
-  try{localStorage.setItem(STORE,JSON.stringify({project,exampleId,brief,briefSource}));localStorage.setItem('unlikely.language',lang);persistenceAvailable=true;}
+function clearExampleHash(){if(exampleFromHash(location.hash)){try{history.replaceState(history.state,'',location.pathname+location.search);}catch{ /* Navigation state does not control saving. */ }}}
+function updateSaveStatus(){
+  const preview=examplePreview.active;
+  if($('feature-save'))$('feature-save').hidden=!preview;
+  if($('feature-preview-note'))$('feature-preview-note').hidden=!preview;
+  $('save-status').textContent=!persistenceAvailable?L('Storage unavailable · export to keep','本地保存不可用，请导出保留'):preview?L('Example preview · not saved','示例预览 · 尚未保存'):L('Saved on this device','已保存在此设备');
+}
+function persist(savePreview=false){
+  let workspaceSaved=false;
+  try{
+    if(!examplePreview.active&&hasSavedProject||savePreview){localStorage.setItem(STORE,JSON.stringify({project,exampleId,brief,briefSource}));workspaceSaved=true;hasSavedProject=true;if(savePreview){examplePreview.commit();clearExampleHash();}}
+    localStorage.setItem('unlikely.language',lang);persistenceAvailable=true;
+  }
   catch{persistenceAvailable=false;}
-  $('save-status').textContent=persistenceAvailable?L('Saved on this device','已保存在此设备'):L('Storage unavailable · export to keep','本地保存不可用，请导出保留');
+  updateSaveStatus();return workspaceSaved;
 }
 function restore(){
-  try{const saved=JSON.parse(localStorageSafe(STORE));if(saved?.project){hasSavedProject=true;project=validateProject(saved.project);exampleId=EXAMPLES.some(e=>e.id===saved.exampleId)?saved.exampleId:null;selectedNode=project.graph.seedId;if(saved.brief&&['title','body','assumptions'].every(k=>typeof saved.brief[k]==='string'&&saved.brief[k].length<18000)){brief=saved.brief;briefSource=String(saved.briefSource||'').slice(0,50);}}}catch{ /* Invalid or older data never replaces a valid example. */ }
+  try{const saved=JSON.parse(localStorageSafe(STORE));if(saved?.project){const restored=validateProject(saved.project);project=restored;hasSavedProject=true;exampleId=EXAMPLES.some(e=>e.id===saved.exampleId)?saved.exampleId:null;selectedNode=project.graph.seedId;if(saved.brief&&['title','body','assumptions'].every(k=>typeof saved.brief[k]==='string'&&saved.brief[k].length<18000)){brief=saved.brief;briefSource=String(saved.briefSource||'').slice(0,50);}}}catch{ /* Invalid or older data never replaces a valid example. */ }
 }
 function notice(message){clearTimeout(noticeTimer);$('notice').textContent=message;$('notice').hidden=false;noticeTimer=setTimeout(()=>$('notice').hidden=true,5000);}
 function setTab(value){tab=value;$('explore-panel').hidden=value!=='explore';$('route-panel').hidden=value!=='route';$('tab-explore').classList.toggle('active',value==='explore');$('tab-route').classList.toggle('active',value==='route');}
 function invalidateBrief(){brief=null;briefSource='';}
-function setExample(id){stopTour();showWorkspace();const example=EXAMPLES.find(e=>e.id===id);if(!example)return;exampleId=id;project=fromExample(example);selectedNode=project.graph.seedId;selectedEdge=null;invalidateBrief();setTab('explore');renderAll(true);persist();}
-function showHome(){
-  if(requestController)return;stopTour();page='home';$('start-screen').hidden=false;$('workspace').hidden=true;$('resume-work').hidden=!hasSavedProject;updateLanguage();window.scrollTo({top:0,behavior:'instant'});
+function setExample(id){
+  if(requestController)return false;const example=EXAMPLES.find(e=>e.id===id);if(!example)return false;
+  stopTour();examplePreview.begin({project,exampleId,brief,briefSource,selectedNode,selectedEdge,tab,hasSavedProject});
+  exampleId=id;project=fromExample(example);selectedNode=project.graph.seedId;selectedEdge=null;pendingBridge=null;invalidateBrief();showWorkspace();setTab('explore');renderAll(true);persist();return true;
 }
-function showWorkspace(){page='workspace';$('start-screen').hidden=true;$('workspace').hidden=false;hasSavedProject=true;$('new-task').hidden=false;requestAnimationFrame(fitMap);window.scrollTo({top:0,behavior:'instant'});}
+function discardExamplePreview(){
+  const saved=examplePreview.discard();if(!saved)return;
+  ({project,exampleId,brief,briefSource,selectedNode,selectedEdge,tab,hasSavedProject}=saved);pendingBridge=null;
+}
+function saveExamplePreview(){
+  stopTour();if(requestController||!examplePreview.active)return;
+  if(persist(true))notice(L('This map is now saved on this device.','当前地图已保存在此设备。'));
+  else notice(L('Could not save on this device. Export the project to keep it.','此设备暂时无法保存，请导出项目保留。'));
+}
+function showHome(){
+  if(requestController)return;stopTour();discardExamplePreview();clearExampleHash();page='home';$('start-screen').hidden=false;$('workspace').hidden=true;$('resume-work').hidden=!hasSavedProject;updateLanguage();window.scrollTo({top:0,behavior:'instant'});
+}
+function showWorkspace(){page='workspace';$('start-screen').hidden=true;$('workspace').hidden=false;$('new-task').hidden=false;requestAnimationFrame(fitMap);window.scrollTo({top:0,behavior:'instant'});}
+function selectFeatureStep(step){
+  if(!['0','1','2'].includes(String(step)))return;
+  document.querySelectorAll('[data-feature-step]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.featureStep===String(step))));
+  document.querySelectorAll('[data-feature-panel]').forEach(panel=>panel.hidden=panel.dataset.featurePanel!==String(step));
+}
+function openOwnTask(){stopTour();showHome();if(page!=='home')return;$('task-form').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'start'});$('task-input').focus({preventScroll:true});}
+async function shareFeaturedExample(){
+  stopTour();const url=exampleShareUrl(location);
+  try{await navigator.clipboard.writeText(url);notice(L('Example link copied.','示例链接已复制。'));}
+  catch{
+    let box=$('feature-share-fallback');
+    if(!box){box=el('div');box.id='feature-share-fallback';$('feature-share').insertAdjacentElement('afterend',box);}
+    const input=el('input');input.type='url';input.readOnly=true;input.value=url;input.setAttribute('aria-label',L('Copy this example link','复制此示例链接'));
+    box.replaceChildren(el('p','',L('Copy this example link:','请复制此示例链接：')),input);box.hidden=false;input.focus();input.select();
+  }
+}
 function updateProvider(){provider=chooseProvider(browserConnection,localProvider,trialState);updateLanguage();}
 async function refreshTrial(){trialState=await trialClient.status();updateProvider();}
 async function showTrialUnavailable(){
@@ -147,6 +191,7 @@ function updateLanguage(){
   $('active-connection').textContent=ownModel?L(`Active: ${provider.model}${provider.mode==='local'?' · local server':''}`,`当前：${provider.model}${provider.mode==='local'?' · 本地服务器':''}`):'';
   $('disconnect-model').hidden=!browserConnection;
   updateDestination();
+  updateSaveStatus();
 }
 function updateDestination(){
   let destination='';try{const url=new URL($('model-base').value);destination=url.origin+url.pathname;}catch{}
@@ -290,7 +335,7 @@ async function synthesize(){
   if(!curated&&!provider.configured){notice(L('Checking the public trial…','正在查看公共试用状态……'));await refreshTrial();}
   if(curated){brief={title:label(curated.title),body:label(curated.output),assumptions:label(curated.assumptions)};briefSource=L('CURATED EXAMPLE OUTCOME','精选案例的预设结果');}
   else if(provider.configured){
-    try{brief=await api('/api/synthesize',{project:validateProject(project),language:lang},L('Finding the thread in your choices…','正在梳理你选出的主线……'));briefSource=L('MODEL DRAFT · YOUR SELECTED ROUTE','模型草案 · 基于你的选择');}catch(error){handleError(error);return;}
+    try{brief=await api('/api/synthesize',{project:validateProject(project),language:lang},L('Finding the thread in your choices…','正在梳理你选出的主线……'));briefSource=L('MODEL DRAFT · YOUR SELECTED ROUTE','模型草案 · 基于你的选择');examplePreview.commit();clearExampleHash();hasSavedProject=true;}catch(error){handleError(error);return;}
   }else{
     const connections=routeEdges(project.graph,project.route);
     brief={title:L('A direction worth exploring','一条值得继续的思路'),body:project.route.map(id=>label(nodeById(id).label)).join(' → ')+'\n\n'+connections.filter(item=>item.edge).map(item=>label(item.edge.reason)).join('\n\n'),assumptions:connections.some(item=>!item.edge)?L('Some selected nodes have no direct connection yet. This is a route summary, not a generated proposal. Explore the gaps or try either complete example route.','部分节点之间尚无直接连接。这里整理的是你的探索记录；你可以继续调整，也可以体验完整案例路线。'):L('This is a summary of your selected relationships, not a new AI-generated proposal. Keep refining it, or try either curated path.','这是所选关系的整理，并非模型新生成的方案。可以继续调整，也可体验下方两条预设路线。')};briefSource=L('YOUR ROUTE · NO LIVE GENERATION','你的探索记录 · 非实时生成');
@@ -336,13 +381,13 @@ async function generateTask(event){
   try{
     const result=await api('/api/generate',{task,seed,constraints,language:lang},L('Finding different ways into your task…','正在为你的任务展开不同的可能性……'));
     const graph=validateGraph(result.graph);const seedLabel=graph.nodes.find(n=>n.id===graph.seedId).label;
-    project=validateProject({version:1,title:task.slice(0,90),task,seed:seed||seedLabel,constraints,graph,route:[graph.seedId],provenance:'model'});exampleId=null;selectedNode=graph.seedId;selectedEdge=null;invalidateBrief();showWorkspace();setTab('explore');renderAll(true);persist();
+    const nextProject=validateProject({version:1,title:task.slice(0,90),task,seed:seed||seedLabel,constraints,graph,route:[graph.seedId],provenance:'model'});examplePreview.commit();clearExampleHash();hasSavedProject=true;project=nextProject;exampleId=null;selectedNode=graph.seedId;selectedEdge=null;invalidateBrief();showWorkspace();setTab('explore');renderAll(true);persist();
     notice(L('Your map is ready. Choose a node to see what it could lead to.','你的地图已展开。点开一个节点，看看它能带你走向哪里。'));
   }catch(error){handleError(error);}
 }
 async function expand(operation){
   stopTour();if(!provider.configured){showTrialUnavailable();return;}
-  try{const result=await api('/api/expand',{project:validateProject(project),nodeId:selectedNode,operation,language:lang},L('Looking beyond this idea…','正在寻找这个节点之外的可能……'));project.graph=validateGraph(result.graph);project.provenance='model';exampleId=null;invalidateBrief();renderAll(true);persist();notice(L('New possibilities added. Your route is unchanged.','新的可能性已加入，你选定的路线仍然保留。'));}catch(error){handleError(error);}
+  try{const result=await api('/api/expand',{project:validateProject(project),nodeId:selectedNode,operation,language:lang},L('Looking beyond this idea…','正在寻找这个节点之外的可能……'));const nextGraph=validateGraph(result.graph);examplePreview.commit();clearExampleHash();hasSavedProject=true;project.graph=nextGraph;project.provenance='model';exampleId=null;invalidateBrief();renderAll(true);persist();notice(L('New possibilities added. Your route is unchanged.','新的可能性已加入，你选定的路线仍然保留。'));}catch(error){handleError(error);}
 }
 function download(data,type,name){const url=URL.createObjectURL(new Blob([data],{type}));const a=el('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 const xml = value => String(value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[char]));
@@ -363,30 +408,37 @@ function importFile(file){
   if(!file)return;stopTour();
   if(file.size>1_000_000){notice(L('Use a project file smaller than 1 MB.','请导入小于 1 MB 的项目文件。'));return;}
   file.text().then(raw=>{
-    const restored=validateProject(JSON.parse(raw));project={...restored,provenance:'import'};exampleId=null;selectedNode=project.graph.seedId;selectedEdge=null;invalidateBrief();showWorkspace();setTab('route');renderAll(true);persist();notice(L('Project imported.','项目已导入。'));
+    const restored=validateProject(JSON.parse(raw));examplePreview.commit();clearExampleHash();hasSavedProject=true;project={...restored,provenance:'import'};exampleId=null;selectedNode=project.graph.seedId;selectedEdge=null;invalidateBrief();showWorkspace();setTab('route');renderAll(true);persist();notice(L('Project imported.','项目已导入。'));
   }).catch(error=>notice(L('Import failed: ','导入失败：')+error.message));
 }
 function stopTour(){tourTimers.forEach(clearTimeout);tourTimers=[];$('tour-caption').hidden=true;}
 function tourCaption(message){const box=$('tour-caption');box.replaceChildren(el('span','',message));const close=el('button','','×');close.type='button';close.setAttribute('aria-label',L('Stop tour','停止演示'));close.onclick=stopTour;box.append(close);box.hidden=false;}
 function runTour(){
-  stopTour();setExample('writing');
+  stopTour();if(setExample('writing')===false)return;
   const route=EXAMPLES.find(e=>e.id==='writing').curatedRoutes[0];
   project.route=[route.nodeIds[0]];renderSelection();renderRoute();fitMap();
-  tourCaption(L('One ordinary seed. Several unexpected directions.','一个普通的起点，展开不同的可能性。'));
+  tourCaption(L('Lemon concentrate → a musical motif → a game replay → three pours.','柠檬浓缩液 → 音乐动机 → 游戏读档 → 三次倒水。'));
+  const captions={
+    motif:L('A musical motif repeats with variations. Keep the pour; change its meaning.','音乐动机在重复中变化。保留倒水动作，改变它的意味。'),
+    rest:L('Borrow a musical rest: the silence after “How much water?” becomes part of the scene.','借用音乐里的休止：“加多少水？”之后的沉默，也成为戏的一部分。'),
+    call_response:L('One question, different replies. Who gets to choose the ratio?','同一个问题，不同的回应。这一次，由谁决定比例？'),
+    replay:L('Borrow a game replay: return to the same framing, change who controls the jug.','借用游戏读档：回到同一个构图，改变谁掌水壶。'),
+    app_sound:L('Three pours turn those connections into a film about control, conflict and choice.','三次倒水，把这些联系变成关于控制、争执与选择的短片。')
+  };
   const steps=route.nodeIds.slice(1);
   steps.forEach((id,index)=>tourTimers.push(setTimeout(()=>{
     selectedNode=id;selectedEdge=direct(route.nodeIds[index],id)?.id||null;project.route=route.nodeIds.slice(0,index+2);renderSelection();renderRoute();
-    tourCaption(index<2?L('Follow an unexpected connection. See why it fits.','沿着意外的连接，看看它为什么成立。'):L('You choose what becomes part of the idea.','由你决定，把什么留在创意里。'));
-  },3500+index*2100)));
+    tourCaption(captions[id]||L('Keep the connection that helps this scene.','留下能帮助这场戏的联系。'));
+  },1800+index*1800)));
   tourTimers.push(setTimeout(()=>{
     const curated=currentCuratedRoute();if(!curated){stopTour();return;}
     // A tour always displays authored content, even when a model is connected.
     brief={title:label(curated.title),body:label(curated.output),assumptions:label(curated.assumptions)};
     briefSource=L('CURATED EXAMPLE OUTCOME','精选案例的预设结果');setTab('route');renderRoute();persist();
     $('idea-brief').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth',block:'nearest'});
-    tourCaption(L('A direction you can turn into something real.','把你选出的关系，整理成可以继续创作的方向。'));
-  },16500));
-  tourTimers.push(setTimeout(()=>{stopTour();},21000));
+    tourCaption(L('“Ratio”: three pours, one kitchen. This is a complete curated draft; no model was called.','《比例》：三次倒水，一间厨房。这是完整预设草案，未调用模型。'));
+  },11500));
+  tourTimers.push(setTimeout(()=>{stopTour();},15000));
 }
 
 $('language').onclick=()=>{stopTour();lang=lang==='en'?'zh':'en';if(brief){const curated=currentCuratedRoute();if(curated){brief={title:label(curated.title),body:label(curated.output),assumptions:label(curated.assumptions)};briefSource=L('CURATED EXAMPLE OUTCOME','精选案例的预设结果');}else invalidateBrief();}renderAll(false);persist();};
@@ -422,15 +474,23 @@ $('import-project').onclick=()=>$('file-input').click();
 $('file-input').onchange=event=>{importFile(event.target.files[0]);event.target.value='';};
 $('zoom-in').onclick=()=>zoom(1.22);$('zoom-out').onclick=()=>zoom(1/1.22);$('fit-map').onclick=fitMap;
 $('walkthrough').onclick=runTour;
+if($('feature-tour'))$('feature-tour').onclick=runTour;
+if($('feature-explore'))$('feature-explore').onclick=()=>setExample('writing');
+if($('feature-own-task'))$('feature-own-task').onclick=openOwnTask;
+if($('feature-share'))$('feature-share').onclick=shareFeaturedExample;
+if($('feature-save'))$('feature-save').onclick=saveExamplePreview;
+document.querySelectorAll('[data-feature-step]').forEach(button=>button.onclick=()=>selectFeatureStep(button.dataset.featureStep));
+document.addEventListener('click',event=>{if(event.target.closest?.('button'))stopTour();},true);
 const canvas=$('canvas');let drag=null;
-canvas.addEventListener('pointerdown',event=>{if(event.target.closest('button')||event.target.closest('.edge-hit'))return;drag={id:event.pointerId,x:event.clientX,y:event.clientY,initialX:camera.x,initialY:camera.y};canvas.setPointerCapture(event.pointerId);});
+canvas.addEventListener('pointerdown',event=>{if(event.target.closest('button')||event.target.closest('.edge-hit'))return;stopTour();drag={id:event.pointerId,x:event.clientX,y:event.clientY,initialX:camera.x,initialY:camera.y};canvas.setPointerCapture(event.pointerId);});
 canvas.addEventListener('pointermove',event=>{if(!drag||event.pointerId!==drag.id)return;camera.x=drag.initialX+event.clientX-drag.x;camera.y=drag.initialY+event.clientY-drag.y;applyCamera();});
 canvas.addEventListener('pointerup',()=>{drag=null;});canvas.addEventListener('pointercancel',()=>{drag=null;});
-canvas.addEventListener('wheel',event=>{event.preventDefault();const bounds=canvas.getBoundingClientRect();zoom(Math.exp(-event.deltaY*.0015),{x:event.clientX-bounds.x,y:event.clientY-bounds.y});},{passive:false});
+canvas.addEventListener('wheel',event=>{event.preventDefault();stopTour();const bounds=canvas.getBoundingClientRect();zoom(Math.exp(-event.deltaY*.0015),{x:event.clientX-bounds.x,y:event.clientY-bounds.y});},{passive:false});
 new ResizeObserver(()=>{if(page==='workspace'){renderGraph();renderSelection();fitMap();}}).observe(canvas);
 document.addEventListener('keydown',event=>{if(event.key==='Escape')stopTour();});
 if(/^https:\/\/github\.com\/[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+\/?$/.test(REPOSITORY_URL)){$('github-link').href=REPOSITORY_URL;$('github-link').hidden=false;}
-restore();renderAll(true);showHome();
+restore();renderAll(true);selectFeatureStep('2');const linkedExample=exampleFromHash(location.hash);if(linkedExample)setExample(linkedExample);else showHome();
+window.addEventListener('hashchange',()=>{const id=exampleFromHash(location.hash);if(id)setExample(id);});
 if (location.hostname === '127.0.0.1' || location.hostname === 'localhost') fetch('./api/status',{signal:AbortSignal.timeout(5000)}).then(response=>response.ok?response.json():null).then(status=>{if(status&&typeof status.configured==='boolean'){localProvider=status;updateProvider();}}).catch(()=>{});
 
 void refreshTrial();

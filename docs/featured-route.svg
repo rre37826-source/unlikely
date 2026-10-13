@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title description">
+  <title id="title">Unlikely: from lemon concentrate to Ratio, a short film</title>
+  <desc id="description">A curated creative example, not live model output. Lemon concentrate suggests a recognizable core with different variations. Music contributes a recurring motif; a game reload contributes the same starting point with a new choice. Ratio turns those structures into three matched kitchen shots: My way, Who decides?, and Your own mix. Two final glasses are labeled one to two and one to five, concentrate to water. Explore the complete curated map without signing up or providing an API key.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M1 1 7 4 1 7" fill="none" stroke="#dcf775" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <g id="cup">
+      <path d="M-23-29H23L17 24H-17Z" fill="#19241d" stroke="#c0cfaa" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M-20-6H20L17 23H-17Z" fill="#dcf775" fill-opacity=".24"/>
+      <path d="M-20-6H20" stroke="#dcf775" stroke-width="1.5"/>
+    </g>
+    <g id="strong-cup">
+      <path d="M-23-29H23L17 24H-17Z" fill="#19241d" stroke="#c0cfaa" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M-20-6H20L17 23H-17Z" fill="#dcf775" fill-opacity=".68"/>
+      <path d="M-20-6H20" stroke="#dcf775" stroke-width="1.5"/>
+    </g>
+    <g id="jug" fill="none" stroke="#dcf775" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+      <path d="M17-27H24C48-27 48 14 22 15"/>
+      <path d="M-29-37H19L23 33H-20Q-27 31-26 22L-21-25Z" fill="#202d22"/>
+      <path d="M-23 9H21L22 31H-21Q-25 29-25 22Z" fill="#dcf775" fill-opacity=".12" stroke="none"/>
+      <path d="M-23 9H21" stroke-opacity=".5"/>
+    </g>
+    <style>
+      text{font-family:'Avenir Next',Arial,Helvetica,sans-serif}
+      .yellow{fill:#dcf775}.white{fill:#eef2e9}.muted{fill:#b0bea9}
+      .label{font-size:21px;font-weight:700;letter-spacing:1px}
+      .small{font-size:14px}.reason{font-size:13px;fill:#c2cdb7}
+      .scene-title{font-size:21px;font-weight:600;fill:#eef2e9}
+      .hand{fill:none;stroke:#becdaa;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}
+    </style>
+  </defs>
+
+  <rect width="1200" height="680" rx="16" fill="#111c17"/>
+  <g fill="none" stroke="#6d8155" stroke-width="1" opacity=".16">
+    <path d="M22 177 94 203 151 177 272 159 362 182 447 170 559 161 676 190 760 166 885 175 997 155 1173 189"/>
+    <path d="M18 284 109 269 198 286 316 268 412 281 524 268 620 284 714 270 845 293 938 274 1089 283 1184 260"/>
+    <path d="M94 203 109 269M272 159 316 268M447 170 412 281M676 190 620 284M885 175 938 274M997 155 1089 283"/>
+  </g>
+  <g fill="#7d9162" opacity=".26">
+    <circle cx="272" cy="159" r="3"/><circle cx="559" cy="161" r="3"/>
+    <circle cx="316" cy="268" r="3"/><circle cx="845" cy="293" r="3"/>
+    <circle cx="997" cy="155" r="3"/><circle cx="1173" cy="189" r="3"/>
+  </g>
+
+  <text x="48" y="46" class="yellow" font-size="25" font-weight="800" letter-spacing="-1">unlikely.</text>
+  <text x="1152" y="43" text-anchor="end" class="muted" font-size="12" letter-spacing="2.2">CURATED EXAMPLE</text>
+  <text x="48" y="108" class="white" font-size="43" font-weight="600" letter-spacing="-1.2">A lemon. A motif. A different ending.</text>
+  <text x="50" y="138" class="muted" font-size="17">Choose connections across fields. See what they make.</text>
+
+  <!-- Selected route: different fields, with a reason for every jump. -->
+  <g fill="none" stroke="#dcf775" stroke-width="1.7" marker-end="url(#arrow)">
+    <path d="M216 237H386"/>
+    <path d="M516 237H687"/>
+    <path d="M818 237H988"/>
+  </g>
+  <g class="reason" text-anchor="middle">
+    <text x="300" y="200"><tspan x="300">keep a core,</tspan><tspan x="300" dy="18">vary the treatment</tspan></text>
+    <text x="602" y="200"><tspan x="602">keep the start,</tspan><tspan x="602" dy="18">change the choice</tspan></text>
+    <text x="903" y="200"><tspan x="903">borrow the structure,</tspan><tspan x="903" dy="18">show a relationship</tspan></text>
+  </g>
+
+  <!-- An ordinary bottle, not an application screenshot. -->
+  <g transform="translate(147 227)">
+    <path d="M-13-49H13V-30L26-17V38Q26 44 20 44H-20Q-26 44-26 38V-17L-13-30Z" fill="#27371f" stroke="#dcf775" stroke-width="2.2" stroke-linejoin="round"/>
+    <path d="M-13-49H13V-39H-13Z" fill="#dcf775"/>
+    <path d="M-25 5H25V37Q25 43 19 43H-19Q-25 43-25 37Z" fill="#dcf775" fill-opacity=".82"/>
+    <ellipse cy="6" rx="13" ry="17" transform="rotate(30)" fill="#111c17"/>
+    <path d="M-6-7Q2-2 7 12" fill="none" stroke="#dcf775" stroke-width="1.6"/>
+    <path d="M-18-13V-1" stroke="#c1d498" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(450 231)">
+    <g stroke="#718461" stroke-width="1" opacity=".5">
+      <path d="M-45-26H47M-45-13H47M-45 0H47M-45 13H47M-45 26H47"/>
+    </g>
+    <g stroke="#dcf775" stroke-width="2.5" stroke-linecap="round">
+      <path d="M-28 11V-29L-3-35V4M13 16V-24L38-30V9" fill="none"/>
+      <path d="M-28-22-3-28M13-17 38-23"/>
+    </g>
+    <g fill="#dcf775">
+      <ellipse cx="-35" cy="13" rx="8" ry="5" transform="rotate(-20 -35 13)"/>
+      <ellipse cx="-10" cy="6" rx="8" ry="5" transform="rotate(-20 -10 6)"/>
+      <ellipse cx="6" cy="18" rx="8" ry="5" transform="rotate(-20 6 18)"/>
+      <ellipse cx="31" cy="11" rx="8" ry="5" transform="rotate(-20 31 11)"/>
+    </g>
+  </g>
+  <g transform="translate(752 231)" fill="none" stroke="#dcf775" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M28-28A40 40 0 1 0 38 13"/>
+    <path d="M27-43 28-27 12-28"/>
+    <path d="M-12 23V0Q-12-8-3-8H16M-12 0Q-12 8-3 8H16"/>
+    <path d="M9-15 16-8 9-1M9 1 16 8 9 15"/>
+    <circle cx="-12" cy="24" r="3.5" fill="#dcf775" stroke="none"/>
+  </g>
+  <g transform="translate(1050 231)">
+    <path d="M-48-21V-34H-33M33-34H48V-21M48 21V34H33M-33 34H-48V21" fill="none" stroke="#dcf775" stroke-width="2.3" stroke-linecap="round"/>
+    <path d="M-23-16H-4L-7 18H-20Z M5-16H24L21 18H8Z" fill="#253622" stroke="#dcf775" stroke-width="1.7"/>
+    <path d="M-21-3H-5L-7 17H-20Z" fill="#dcf775" fill-opacity=".7"/>
+    <path d="M7 5H23L21 17H8Z" fill="#dcf775" fill-opacity=".25"/>
+  </g>
+
+  <g text-anchor="middle">
+    <text x="147" y="311" class="yellow label" style="font-size:18px">LEMON CONCENTRATE</text>
+    <text x="147" y="337" class="muted small">one everyday starting point</text>
+    <text x="450" y="311" class="yellow label">MUSIC</text>
+    <text x="450" y="337" class="muted small">repeat a motif</text>
+    <text x="752" y="311" class="yellow label">GAME RELOAD</text>
+    <text x="752" y="337" class="muted small">same start, new choice</text>
+    <text x="1050" y="311" class="yellow label">RATIO</text>
+    <text x="1050" y="337" class="muted small">a short film</text>
+  </g>
+
+  <path d="M48 372H1152" stroke="#384738"/>
+  <text x="48" y="400" class="muted" font-size="12" letter-spacing="1.8">THE RESULT · THREE MATCHED SHOTS</text>
+  <text x="1152" y="400" text-anchor="end" class="muted small">Two actors. One kitchen. “How much water?”</text>
+
+  <!-- Three scene sketches: control, conflict, and room for two choices. -->
+  <g fill="none" stroke="#33442f" stroke-width="1">
+    <path d="M414 427V590M800 427V590"/>
+    <path d="M76 557H374M451 557H765M832 557H1135"/>
+  </g>
+  <g>
+    <text x="76" y="445" class="muted" font-size="12">01</text>
+    <text x="107" y="445" class="scene-title">My way</text>
+    <path d="M77 501H136Q145 501 149 509L155 518" class="hand"/>
+    <use href="#jug" transform="translate(181 519) rotate(16) scale(-.85 .85)"/>
+    <path d="M214 497Q242 492 264 519" fill="none" stroke="#dcf775" stroke-width="2" stroke-dasharray="3 6" stroke-linecap="round"/>
+    <use href="#strong-cup" transform="translate(278 532)"/>
+    <text x="278" y="490" text-anchor="middle" class="yellow small">1:2</text>
+    <text x="76" y="586" class="muted small">One person sets the ratio.</text>
+  </g>
+  <g>
+    <text x="451" y="445" class="muted" font-size="12">02</text>
+    <text x="483" y="445" class="scene-title">Who decides?</text>
+    <path d="M451 509H544Q557 509 561 516M751 494H628Q614 494 609 510" class="hand"/>
+    <use href="#jug" transform="translate(582 519) rotate(7) scale(.85)"/>
+    <use href="#cup" transform="translate(689 532)"/>
+    <text x="689" y="490" text-anchor="middle" class="yellow small">1:5</text>
+    <text x="451" y="586" class="muted small">Same setup. A different hand.</text>
+  </g>
+  <g>
+    <text x="832" y="445" class="muted" font-size="12">03</text>
+    <text x="864" y="445" class="scene-title">Your own mix</text>
+    <use href="#strong-cup" transform="translate(882 532)"/>
+    <use href="#jug" transform="translate(977 526) scale(.85)"/>
+    <use href="#cup" transform="translate(1087 532)"/>
+    <text x="882" y="490" text-anchor="middle" class="yellow small">1:2</text>
+    <text x="1087" y="490" text-anchor="middle" class="yellow small">1:5</text>
+    <text x="832" y="586" class="muted small">Two glasses can both remain.</text>
+  </g>
+
+  <path d="M48 614H1152" stroke="#384738"/>
+  <text x="48" y="650" class="yellow" font-size="19" font-weight="600">Explore the complete map</text>
+  <path d="M300 651 315 636M303 636H315V648" fill="none" stroke="#dcf775" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="1152" y="648" text-anchor="end" class="white" font-size="15">No sign-up or API key</text>
+</svg>

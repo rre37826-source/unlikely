@@ -1,6 +1,6 @@
 {
   "name": "unlikely-idea-explorer",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "description": "Turn a task into a map of possibilities. Choose your own creative path.",
@@ -10,6 +10,6 @@
   "scripts": {
     "start": "node --env-file-if-exists=.env server.mjs",
     "test": "node --experimental-sqlite --test tests/*.test.mjs",
-    "check": "node --check server.mjs && node --check public/app.mjs && node --check public/core.mjs && node --check public/layout.mjs && node --check public/model-client.mjs && node --check public/model-protocol.mjs && node --check public/model-errors.mjs && node --check public/trial-client.mjs && node --check trial/index.mjs && node --check trial/ledger.mjs && node --check trial/limits.mjs && node --check trial/protocol.mjs"
+    "check": "node --check server.mjs && node --check public/app.mjs && node --check public/featured-copy.mjs && node --check public/example-preview.mjs && node --check public/core.mjs && node --check public/layout.mjs && node --check public/model-client.mjs && node --check public/model-protocol.mjs && node --check public/model-errors.mjs && node --check public/trial-client.mjs && node --check trial/index.mjs && node --check trial/ledger.mjs && node --check trial/limits.mjs && node --check trial/protocol.mjs"
   }
 }

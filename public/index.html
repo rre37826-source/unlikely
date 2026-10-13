@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Turn a task into a map of possibilities. Explore unexpected connections and choose your own creative path.">
+  <meta name="description" content="Lemon concentrate → music → game reload → a short film. Explore a complete idea map, choose connections, and make the idea yours.">
   <meta name="theme-color" content="#111615">
   <meta property="og:type" content="website">
   <meta property="og:title" content="Unlikely — A map of possibilities">
-  <meta property="og:description" content="Explore unexpected connections. Choose your own creative path. An open-source playground for writing, products, and business.">
+  <meta property="og:description" content="From lemon concentrate to a short film, through music and games. Explore the interactive example. No sign-up or API key.">
   <meta property="og:url" content="https://rre37826-source.github.io/unlikely/">
   <meta property="og:image" content="https://rre37826-source.github.io/unlikely/social-preview.png">
   <meta name="twitter:card" content="summary_large_image">
@@ -21,7 +21,7 @@
     <a id="home-link" class="wordmark" href="./" aria-label="Unlikely home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 24 12 8l8 15L28 6"/><circle cx="5" cy="24" r="3"/><circle cx="12" cy="8" r="3"/><circle cx="20" cy="23" r="3"/><circle cx="28" cy="6" r="3"/></svg><span>unlikely<span class="wordmark-period">.</span></span></a>
     <span class="brand-note" data-i18n="tagline">A map of possibilities</span>
     <nav class="top-actions" aria-label="Workspace actions">
-      <button id="walkthrough" class="quiet-button" data-i18n="watch">20-second tour</button>
+      <button id="walkthrough" class="quiet-button" data-i18n="watch">15-second tour</button>
       <button id="new-task" class="quiet-button" data-i18n="newTask">Your own task</button>
       <button id="connection-button" class="connection-button"><span class="connection-dot"></span><span id="connection-label">Advanced</span></button>
       <button id="language" class="language-button" aria-label="Switch language">中文</button>
@@ -30,10 +30,41 @@
   </header>
 
   <main id="start-screen" class="start-screen">
+    <section class="featured-example" aria-labelledby="feature-heading">
+      <div class="feature-intro">
+        <div class="start-kicker"><span></span><span data-i18n="featureKicker">CREATIVITY STARTS WITH A CONNECTION</span></div>
+        <h1 id="feature-heading"><span data-i18n="featureTitle">From lemon concentrate.</span><br><em data-i18n="featureTitleAccent">To a short film.</em></h1>
+        <p class="feature-description" data-i18n="featureDescription">Borrow repetition from music. Borrow a second chance from games. Turn a kitchen argument into three different endings.</p>
+        <div class="feature-actions"><button id="feature-tour" class="primary-button"><span aria-hidden="true">▷</span> <span data-i18n="featureTour">Watch the 15-second route</span></button><button id="feature-explore" class="feature-explore" data-i18n="featureExplore">Explore the full map ↗</button></div>
+        <p class="feature-disclosure" data-i18n="featureDisclosure">Curated, interactive example · No account or API key</p>
+        <div class="feature-secondary"><button id="feature-own-task" class="text-button" data-i18n="featureOwn">Bring your own task ↓</button><button id="feature-share" class="text-button" data-i18n="featureShare">Copy example link ↗</button></div>
+      </div>
+      <div class="feature-demonstration">
+        <div class="feature-map-heading"><span data-i18n="featureMapLabel">ONE ROUTE THROUGH THE POSSIBILITIES</span><span>01 / 03</span></div>
+        <div class="feature-route">
+          <div class="feature-route-stop seed-stop"><span class="route-dot"></span><div><small data-i18n="featureSeedDomain">EVERYDAY OBJECT</small><strong data-i18n="lemonSeed">Lemon concentrate</strong></div><p data-i18n="featureSeedReason">One base. Different proportions.</p></div>
+          <div class="feature-route-stop music-stop"><span class="route-dot"></span><div><small data-i18n="featureMusicDomain">MUSIC</small><strong data-i18n="featureMusic">A recurring motif</strong></div><p data-i18n="featureMusicReason">Repeat the same question. Change its meaning.</p></div>
+          <div class="feature-route-stop game-stop"><span class="route-dot"></span><div><small data-i18n="featureGameDomain">GAMES</small><strong data-i18n="featureGame">Reload. Choose again.</strong></div><p data-i18n="featureGameReason">Start from the same frame. Change one choice.</p></div>
+        </div>
+        <div class="feature-result">
+          <div class="feature-result-header"><span data-i18n="featureResultLabel">THE SHORT FILM</span><strong data-i18n="featureResultTitle">Ratio</strong><span class="feature-duration" data-i18n="featureLimits">2 actors · 1 kitchen</span></div>
+          <div class="feature-beats" aria-label="Storyboard scenes">
+            <button data-feature-step="0" aria-pressed="false"><small>01</small><span data-i18n="featureBeat1">My way.</span></button>
+            <button data-feature-step="1" aria-pressed="false"><small>02</small><span data-i18n="featureBeat2">Who decides?</span></button>
+            <button data-feature-step="2" aria-pressed="true"><small>03</small><span data-i18n="featureBeat3">Your own mix.</span></button>
+          </div>
+          <div class="feature-frame" data-feature-panel="0" hidden><div class="frame-quote" data-i18n="featureQuote1">“Two parts water. Like she made it.”</div><p data-i18n="featureScene1">One sibling holds the jug and dictates the recipe. The other waits.</p><span class="frame-mechanism" data-i18n="featureMechanism1">MUSIC → introduce the motif: “How much water?”</span></div>
+          <div class="feature-frame" data-feature-panel="1" hidden><div class="frame-quote" data-i18n="featureQuote2">“That was never her recipe.”</div><p data-i18n="featureScene2">Same framing. Both reach for the jug. The repeated question becomes an argument.</p><span class="frame-mechanism" data-i18n="featureMechanism2">VARIATION → same line, a different power balance</span></div>
+          <div class="feature-frame" data-feature-panel="2"><div class="frame-ending"><div><div class="frame-quote" data-i18n="featureQuote3">“How much?” “You choose.”</div><p data-i18n="featureScene3">The jug goes in the middle. Two different recipes stay on the table.</p></div><div class="two-glasses" aria-hidden="true"><span><i></i>1:2</span><span><i></i>1:5</span></div></div><span class="frame-mechanism" data-i18n="featureMechanism3">GAME RELOAD → same beginning, a new choice</span></div>
+        </div>
+        <div class="feature-map-foot"><p data-i18n="featureMapFoot">A condensed route preview. Open the map for all 31 ideas and their connections.</p><a href="https://github.com/rre37826-source/unlikely" target="_blank" rel="noopener noreferrer" data-i18n="featureStar">Follow the project on GitHub ↗</a></div>
+      </div>
+    </section>
+
     <section class="start-intro">
-      <div class="start-kicker"><span></span><span data-i18n="homeKicker">AN OPEN WORKSPACE FOR UNEXPECTED IDEAS</span></div>
-      <h1><span data-i18n="homeTitle">One task.</span><br><em data-i18n="homeTitleAccent">More than one way in.</em></h1>
-      <p class="home-description" data-i18n="homeDescription">Describe what you want to make. Explore unexpected connections, then choose a route to develop into an idea.</p>
+      <span class="mini-kicker" data-i18n="ownKicker">MAKE IT YOURS</span>
+      <h2 data-i18n="ownHeading">What are you working on?</h2>
+      <p class="home-description" data-i18n="ownDescription">A story, a product, a business experiment. Start with your task, then choose what belongs in it.</p>
       <form id="task-form" class="task-composer">
         <label for="task-input" data-i18n="taskLabel">What are you trying to make?</label>
         <textarea id="task-input" rows="3" maxlength="4000" required></textarea>
@@ -64,6 +95,7 @@
 
   <main id="workspace" class="workspace" hidden>
     <section class="explorer" aria-label="Idea exploration">
+      <div class="preview-bar"><span id="feature-preview-note" data-i18n="previewNote" hidden>Example playground · Your saved map is safe.</span><button id="feature-save" hidden data-i18n="saveExample">Keep this map</button></div>
       <div class="workspace-guide"><span data-i18n="guideExplore">01 Explore ideas & relationships</span><span aria-hidden="true">→</span><span data-i18n="guideChoose">02 Add ideas to your route</span><span aria-hidden="true">→</span><button id="guide-route" data-i18n="guideShape">03 Shape your draft ↗</button></div>
       <div class="brief-bar">
         <div class="brief-heading">

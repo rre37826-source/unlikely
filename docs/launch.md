@@ -1,71 +1,91 @@
 # Launch materials
 
-Drafts for human review and publication. No external posts or growth results are claimed. **The limited public trial is enabled**, with no visitor account or API key required. One real public generation flow has been verified; see the [verification record](verification-v0.3.2.md) for the tested scope. Verify public links and refresh screenshots or recordings after interface changes.
+**Drafts only: not sent or published.** The featured demo and the five-person comprehension test below have not been tested with participants. No user feedback, growth result, or popularity claim is implied.
 
-## Current positioning
+Featured route: **lemon concentrate → musical motifs, rests, and call-and-response → game reloads → the short-film premise *Ratio* /《比例》**.
 
-**One task. More than one way in.**
+Direct entry: [Open the writing example](https://rre37826-source.github.io/unlikely/#example=writing). The curated example opens the complete map without login, an API key, or a model request. Custom tasks use the limited public trial.
 
-Bring a task, explore unexpected connections, and choose the ideas worth developing. The limited public trial needs no account or API key. Three complete curated examples are also free to explore.
+## A 15-second demo to record
 
-中文：一个任务，不止一条思路。带着任务探索意外的联系，选出自己的主线。公共限额试用无需注册或填写 API key，也有三个完整精选案例可免费探索。
+The [homepage](https://rre37826-source.github.io/unlikely/) already has a **15-second tour / 15 秒看懂** button. Use this built-in tour directly for the test below; no recorded video is needed. The script here is for a future standalone recording.
 
-## A 20-second example walkthrough
-
-Capture the task-first starting screen, then open Writing. Keep **Curated example · No live AI** visible in the map sequence. This demonstrates exploration, not a live model call.
+Use the actual featured example and keep **Curated example / 预设案例** visible. Show the whole network before following the route. This is a proposed recording script, not a claim that the new recording is finished or that a film has been produced.
 
 | Time | Screen action | Caption |
 | --- | --- | --- |
-| 0–3s | Open the short-film example: two siblings, one old kitchen. | “Start with something you want to make.” / “先说清你想做什么。” |
-| 3–7s | Show the full map. Follow lemon concentrate → remove the water → data compression; open the explanation. | “Find an unexpected connection.” / “找到一条意外的联系。” |
-| 7–12s | Continue through omitted detail → shared recipe and keep those nodes. | “You choose what to keep.” / “由你决定留下什么。” |
-| 12–17s | Add “Keep both glasses” and reveal the authored outcome. | “One bottle. Two memories.” / “一瓶柠檬，两种记忆。” |
-| 17–20s | Hold on the route, outcome, and example URL. | “Explore your own route.” / “选一条你自己的路线。” |
+| 0–3s | Show the task and full network: two siblings clearing an old kitchen. Highlight the lemon seed. | “Two actors. One kitchen. A bottle of lemon concentrate.” / “两位演员，一间厨房，一瓶柠檬浓缩液。” |
+| 3–6s | Follow the link into a recurring musical motif; show the reason. | “Repeat one question. Change the answer and the silence.” / “同一句问话，改变回答与停顿。” |
+| 6–9s | Follow the game-reload connection and its explanation. | “Same starting point. Change one choice.” / “回到同一起点，改变一次选择。” |
+| 9–12s | Show the human selecting the route; focus the authored jug beats: held, contested, placed in the middle. | “Who gets to decide how much water?” / “谁来决定加多少水？” |
+| 12–15s | Hold on the premise *Ratio* and its final two glasses, labeled 1:2 and 1:5, alongside the route. | “One starting point. Two versions worth keeping.” / “同一个起点，留下两个版本。” |
 
-Refresh `start.png`, `demo.gif`, and `demo.mp4` as needed. Do not cut from a new task to a preset outcome as if it were generated. Do not record keys or private task data. A model-result clip must identify what actually ran, including the model, whether the result was imported, and whether it used a mock.
+If all three captions cannot be read comfortably, shorten the words before speeding up the interface. Do not imply that a 15-second demonstration is the model's generation time. Keep intermediate nodes in the actual route; highlight the key connections without inventing shortcuts. Show the authored scene beats as text or a labeled diagram, not as footage of a completed film.
 
-## English introduction — current draft
+Ending action: **“Open the map. Choose what stays.” / “打开全图，决定留下什么。”** Link directly to `#example=writing`.
 
-**Unlikely: one task, more than one way in**
+## English introduction — ready-to-send draft
 
-What could lemon concentrate have to do with a short film, a product for interrupted work, or a café experiment?
+**How does lemon concentrate become a short film?**
 
-I built Unlikely to explore those connections. Start with a task, see the full map, inspect why ideas connect, and choose the ones worth developing. A limited public trial is enabled without registration or your own API key. Three curated examples and six complete preset routes are free to explore, and you can export your route as Markdown, JSON, or an SVG card.
+I built Unlikely, an open-source tool for exploring connections across creative fields. Its featured example follows lemon concentrate into musical motifs and game reloads, then into *Ratio*, a short-film premise with two actors and one kitchen.
 
-The examples are authored, not live-generated. A real public generation flow has been verified; see the [verification record](verification-v0.3.2.md) for its scope. Using your own compatible model is an optional advanced path, with charges on your own provider account.
+Two siblings ask “How much water?” three times in the same framing. The answers, pauses, and control of the jug change. The final image keeps two glasses, marked 1:2 and 1:5.
 
-Try a route and tell me which connection surprised you—or felt forced. If you want to follow the project, a GitHub star is welcome.
+You can open the full network, inspect why the ideas connect, and choose what belongs in your own route. The example is curated and interactive: no login, no API key, no model wait. Writing, product, and business examples are included; custom generation has public-trial usage and budget limits.
 
-[Try Unlikely](https://rre37826-source.github.io/unlikely/) · [Source](https://github.com/rre37826-source/unlikely)
+[Explore the map for *Ratio*](https://rre37826-source.github.io/unlikely/#example=writing) · [Source](https://github.com/rre37826-source/unlikely)
 
-## 中文介绍 — 当前草案
+Try changing one choice. Star the project to bookmark it, share a route with reasons for its connections, or tell us where the experience was confusing.
 
-**同一瓶柠檬浓缩液，可以走向多少种创意？**
+## 中文介绍 — 可直接发送的草案
 
-我做了一个开源工具 Unlikely：围绕具体任务展开全景联想网络，查看不同概念为什么相连，由自己选节点、排顺序，形成主线。
+**一瓶柠檬浓缩液，怎么走到一部短片？**
 
-公共限额试用已开启，无需注册或填写自己的 API key。也可以免费体验写作、产品、商业三个精选案例和六条附完整结果的预设路线，自由选择主线，导出 Markdown、JSON 或 SVG 卡片。
+我做了一个开源创意探索工具 Unlikely。精选案例从柠檬浓缩液出发，借来音乐里的动机、休止与呼应，再借来游戏读档“回到同一起点，改变一次选择”的结构，走到短片构思《比例》。
 
-这些案例是人工编排的，不是实时生成。已完成一次真实公开网页生成，实测范围详见[验证记录](verification-v0.3.2.md)。自带模型是可选高级方式，费用由自己的服务商账户承担。
+两位手足清空旧厨房。在同一个构图里，三次问“加多少水？”。水壶从发号施令的人手里，到两人争抢，再到桌中央。最后留下两杯分别标着 1:2 和 1:5 的饮料。
 
-欢迎试试，告诉我哪条联系带来新想法，哪条显得牵强。如果希望继续关注，也欢迎点一颗 star。
+你可以直接看完整联想网络，点开每条联系的理由，再决定哪些想法值得留下。这是可交互的精选案例，无需登录、无需 API key，不等待模型生成。也有产品和商业案例；换成自己的任务时，实时生成受公共试用额度和预算限制。
 
-[在线体验](https://rre37826-source.github.io/unlikely/) · [源码](https://github.com/rre37826-source/unlikely)
+[打开《比例》的完整网络](https://rre37826-source.github.io/unlikely/#example=writing) · [源码](https://github.com/rre37826-source/unlikely)
 
-## Short post — current draft
+欢迎试着改变一个选择。可以点一颗 star 收藏项目，分享一条附有联系理由的路线，或告诉我们哪里看不懂。
 
-**EN:** I built Unlikely: bring a task, explore unexpected connections, and choose a creative route. Limited public trial enabled—no account or API key needed. Three complete curated examples are also free to explore. Try it: https://rre37826-source.github.io/unlikely/
+## Short posts — unsent drafts
 
-**中文：** 做了一个开源创意探索工具 Unlikely：带着任务，看见联系，选出主线。公共限额试用已开启，无需注册或填写 API key，也有三个完整精选案例可免费探索。体验：https://rre37826-source.github.io/unlikely/
+**EN:** Lemon concentrate → musical motifs → game reloads → *Ratio*, a short-film premise. Unlikely lets you inspect those connections and choose your own route. Open the curated map instantly—no login, API key, or model call: https://rre37826-source.github.io/unlikely/#example=writing
 
-## Publication boundary
+**中文：** 柠檬浓缩液 → 音乐动机 → 游戏读档 → 短片构思《比例》。Unlikely 把联系展开成完整网络，由你挑选值得留下的思路。精选案例即开即看，无需登录、API key 或模型调用：https://rre37826-source.github.io/unlikely/#example=writing
 
-Current copy may describe the public trial as enabled without registration or a visitor key. Each anonymous session and each IP has three shared model operations per UTC day, subject to global usage, concurrency, and monthly budget limits. One real public generation flow is verified; this does not establish reliability across arbitrary tasks, real expansion or synthesis, or browser BYOK compatibility. Do not claim unlimited access, a guaranteed result or cost cap, or all-provider compatibility.
+## First five people: comprehension test
 
-中文边界：可说明公共限额试用已开启、无需访客账号或密钥，并已验证一次真实公开生成；不能由此推断任意任务都稳定成功，或真实延展、整理与浏览器 BYOK 已验证。每个匿名会话和每个 IP 每个 UTC 日各三次模型操作，按较少余额执行，并受全局、并发和月度预算限制。
+**Not recruited, not sent, not run. The thresholds below are targets, not results.**
 
-## Observe the launch
+Recruit five people who have not seen the project: two people who write or make visual work, two who build or design products, and one who works on a business or service. At least three should use GitHub. Use three desktop sessions and two phone sessions. Participation is voluntary and unpaid; do not ask for a star or treat willingness to praise the project as success.
 
-Track dated repository views, available referral totals, net new stars, forks, and contributions. Collect feedback on whether visitors can explain a connection and choose a useful route.
+Use the [homepage](https://rre37826-source.github.io/unlikely/) as the entry page for all five sessions. Let each person see the homepage, then play the same built-in **15-second tour / 15 秒看懂** once. Return to the homepage for the second task so everyone encounters the same example entry. Use the same site version and featured writing route throughout. Allow eight minutes per person. Test only the curated example and route controls; do not trigger generation, expansion, or synthesis. Prepare a fresh browser view without a saved project. The moderator must not explain the product before the first answer.
 
-Quota accounting is not product analytics. Do not infer retention or activation from trial counters. Aggregate visits and stars cannot identify which visitor starred or prove that a post caused growth. Keep small or uncontrolled differences as observations rather than causal conclusions.
+Opening script: “We are testing whether this page makes sense, not your ability. Please say what you notice or find confusing. Use the prepared example only; no sign-up or personal information is needed.”
+
+Unsent invitation: “Could you spare eight minutes to try a creative tool you haven't used before? I'd like to see what is clear and what is confusing. No account, payment, or positive review is needed, and you can stop at any time.”
+
+中文邀请草案：“想请你花八分钟试一个还没用过的创意工具，帮我看哪里清楚、哪里看不懂。不需要注册、付费或给好评，也可以随时结束。”
+
+| Question or task | Moderator procedure | Success threshold |
+| --- | --- | --- |
+| **1. “How did the example get from a bottle of lemon concentrate to a short film? Explain one connection in your own words.” / “这个例子怎样从一瓶柠檬走到短片？选一个中间联系，用自己的话解释。”** | After the homepage and one built-in tour, hide the page. Do not suggest the words music, games, or analogy. Record the answer verbatim. | At least **4/5** explain a useful transfer, such as a repeated musical phrase changing meaning or the same starting point allowing a different choice. Merely naming the fields does not count. |
+| **2. “Open the complete example, choose a route you would continue developing, and explain one idea you would keep or change.” / “请打开完整案例，选一条你愿意继续发展的路线，并解释一个你会保留或改掉的想法。”** | Return to the homepage at the top, then read the task and start timing. Record the first click. Give no navigation hints; keep all model operations out of scope. | At least **4/5** find the example entry within **15 seconds** and show a route plus a reasoned choice within **90 seconds**, without help. |
+| **3. “What recent task would you try this on? What would you expect to take away, and what would you still need to do yourself?” / “最近哪件具体的事你会拿来试？你希望带走什么，还需要自己做什么？”** | Ask after the interaction. Do not list possible uses or suggest that the person should want the product. Accept “I wouldn't use it.” | At least **3/5** name a concrete task and a plausible takeaway—connections, a route, or a premise—while retaining a human decision or development step. |
+
+Record only an anonymous participant label, device, answer quotes, first click, timings, wrong turns, and whether a hint was needed. Keep a no-response or abandoned task visible in the denominator. A moderated explanation after failure does not turn the original attempt into a pass.
+
+If at least two people hit the same obstacle, revise that wording or interaction before seeking more exposure. A five-person test can identify obvious misunderstandings; it cannot establish star conversion, retention, or population-level preferences. To evaluate a revision, use new participants rather than treating familiarity as improvement.
+
+## Claims and release boundaries
+
+- The featured route and its outcome are authored. The film is a premise, not a completed production; the music and game connections are creative analogies, not research findings.
+- Free, immediate exploration refers to curated content. Custom generation uses three shared model operations per anonymous session and per IP per UTC day, with additional global, concurrency, and monthly budget limits. BYOK is optional and may incur charges on the visitor's provider account.
+- One real public generation flow is verified in the [v0.3.2 record](verification-v0.3.2.md). This does not establish success for arbitrary tasks, real expansion or synthesis, or browser BYOK compatibility.
+- Community copy, invitations, and the test plan remain drafts until actually used. Record real dates, observations, and voluntary feedback; do not add invented quotes, stars, endorsements, or results.
+- Repository views and net new stars can be observed separately. They do not identify which visitor starred or prove that a particular post caused growth. Keep private traffic data out of public copy.

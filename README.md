@@ -1,46 +1,58 @@
 # Unlikely
 
-**One task. More than one way in.**
+**Lemon concentrate → music → game saves → a short film.**
 
-An open-source tool for finding creative directions in writing, products, business, and your own tasks. Start with something you want to make, explore unexpected connections, and choose the ideas worth developing.
+Two siblings are clearing out their old kitchen. A bottle of lemon concentrate becomes the starting point for *Ratio*: three versions of the same question, and a different choice each time.
 
-**[Try Unlikely](https://rre37826-source.github.io/unlikely/)** · [Run locally](#run-locally) · [简体中文](README.zh-CN.md)
+**[Explore the full map for *Ratio*](https://rre37826-source.github.io/unlikely/#example=writing)** · [简体中文](README.zh-CN.md) · [Run locally](#run-locally)
 
-**Limited public trial is enabled:** submit your own task without an account or API key. Usage limits apply. Three complete examples are also free to explore without model calls. Bringing your own model remains an optional advanced feature.
+![The featured route: lemon concentrate, musical motifs and pauses, game reloads, and the short-film premise Ratio](docs/featured-route.svg)
 
-![Unlikely's starting screen with a task composer and three ready-made examples](docs/start.png)
+**Open the complete curated map immediately. No login, no API key, no model call.** This is an authored, interactive example; you can inspect the connections and choose your own route.
 
-## From a task to a creative route
+Examples open as previews and leave your saved map unchanged. Choose **Keep this map** to save the example and your changes on this device.
 
-1. **Bring a task.** Choose a ready-made example, or describe your goal, optional inspiration, audience, and constraints.
-2. **Explore the whole map.** Click ideas and connections to see why they relate. Model operations can deepen a node, try an analogy, or reverse a premise when a generation service is available.
-3. **Choose your route.** Keep, reorder, or remove ideas, then develop the route or export Markdown, JSON, and an SVG card.
+## How the connection becomes a scene
 
-Missing relationships stay visible. Unlikely can suggest a path through existing connections, but you decide whether to add it. Model expansion adds new material while preserving the existing graph and selected route.
+The task: a short film with **two actors and one kitchen**.
 
-![A curated route through Unlikely's panoramic idea map](docs/demo.gif)
-
-## Three tasks, one ordinary seed
-
-All three curated examples start from **lemon concentrate**, each with 31 nodes across six clusters and two complete preset routes.
-
-| Task | One possible direction |
+| Starting point | What the film borrows |
 | --- | --- |
-| Write an eight-minute short film with two actors and one kitchen | Two siblings stop correcting each other's familiar drink and keep two versions of home. |
+| Lemon concentrate: a reusable base, mixed in different proportions | Keep the same scene and question as the material for several variations. |
+| Music: a recurring motif, rests, and call-and-response | Repeat “How much water?” in the same framing; let the answer, silence, and pouring change its meaning. |
+| Games: reload the same starting point and change one choice | Return to the setup and change who controls the jug. Borrow a structure for variation, without requiring a literal time loop. |
+
+In *Ratio*, the jug begins in the commanding sibling’s hand, becomes something both reach for, then is placed in the middle of the table. The final image holds two glasses labeled **1:2** and **1:5**. The siblings keep their different versions.
+
+Unlikely is an open-source workspace for exploring connections like these. It shows a whole network with reasons for its links. **You decide which connections belong in the idea.**
+
+## Try the route, then change it
+
+1. **Open the full map.** The writing example loads without waiting for a model.
+2. **Inspect a connection.** Click a node or line to see what the relationship contributes to the task.
+3. **Choose what stays.** Try a complete preset route, or keep, reorder, and remove ideas yourself. Export your route as Markdown, JSON, or an SVG card.
+
+Missing relationships remain visible. Suggested bridges use existing connections and require your choice. The featured route has an authored outcome; other routes can be explored independently.
+
+## Writing, products, and business
+
+All three complete examples begin with **lemon concentrate**. Each includes a full map and two preset routes with authored outcomes.
+
+| Task | A direction to explore |
+| --- | --- |
+| Write a short film with two actors and one kitchen | *Ratio*: a repeated question changes from control to shared choice. |
 | Design a product for interrupted creative work | A Context Capsule preserves the intention and reason behind a decision. |
 | Explore a low-cost café service | A twenty-minute mixing stop to test on two quiet afternoons. |
 
-These are **authored examples, not live generation**. Exact preset routes show their authored outcomes. Without a model service, other routes summarize selected nodes and existing relationships rather than generating a new proposal.
+These examples are curated, not live-generated. Matching a preset route shows its authored result. Without a model service, other routes summarize selected nodes and existing relationships rather than generating a new proposal.
 
-## Public trial
+## Bring your own task
 
-The hosted gateway is deployed and enabled, with operator credentials and a monthly budget configured. Visitors can request generation without signing up or supplying a key.
+Describe a writing, product, business, or other creative task, with optional inspiration and constraints. The public trial accepts requests without an account or visitor API key.
 
-The default limits are three model operations per anonymous session **and per IP address per UTC day**, shared by generation, expansion, and synthesis; the tighter allowance wins. Global usage, concurrency, and monthly budget limits also apply. Curated examples remain free and do not consume this allowance.
+Custom generation has limits: **three model operations per anonymous session and per IP address per UTC day**, shared by generation, expansion, and synthesis; the tighter allowance wins. Global usage, concurrency, and monthly budget limits also apply. **Curated examples do not consume this allowance.**
 
-The live public generation flow has been verified with Kimi K2.6. This is one successful request; real expansion and synthesis remain unverified. See the [v0.3.2 verification record](docs/verification-v0.3.2.md) for the tested scope.
-
-While unavailable or out of quota, the app keeps your current work and offers examples or a retry where appropriate. It does not require an API-key form to continue. See [public-trial setup and limits](docs/public-trial.md) for quota rules and data handling.
+One real public generation flow has been verified with Kimi K2.6. Real expansion and synthesis remain unverified; see the [verification record](docs/verification-v0.3.2.md). When the service is unavailable or the allowance is exhausted, your existing work and curated examples remain accessible. See [public-trial limits and data handling](docs/public-trial.md).
 
 ## Advanced: bring your own model
 
@@ -76,7 +88,7 @@ This server binds to `127.0.0.1` for local use. Public trial requests use a sepa
 
 | Item | Where it goes |
 | --- | --- |
-| Task, graph, route, and draft | This browser's `localStorage` when available; export JSON for a portable project copy. |
+| Task, graph, route, and draft | Saved projects use this browser's `localStorage` when available. Example previews require **Keep this map**; export JSON for a portable copy. |
 | Public-trial content | Through the gateway to its fixed model provider. The gateway does not persist task or graph content. |
 | Public-trial quota data | D1 accounting and request records use HMAC-derived quota identifiers; raw IP addresses are not stored there. |
 | Optional browser model settings | Page memory only; key, endpoint, and model clear on refresh and are excluded from storage and exports. |
@@ -102,6 +114,6 @@ npm run check
 - `trial/index.mjs`: public gateway handler; D1 and operator configuration are required.
 - `server.mjs`: local server and optional private model adapter.
 
-Bring a concrete task, an unexpected connection, or a reproducible issue. See [CONTRIBUTING.md](CONTRIBUTING.md). If you want to follow the project, a star is welcome.
+Star Unlikely to bookmark the project. Help it grow by sharing a route across fields with reasons for its connections, or reporting where the experience was confusing. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 [MIT](LICENSE) © 2026 Unlikely contributors.
